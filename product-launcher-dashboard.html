@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Launcher AI — Agent Dashboard</title>
+<style>
+  :root {
+    --bg: #0a0a1a; --card: #0f172a; --border: #1e293b;
+    --text: #e2e8f0; --muted: #64748b; --accent: #22d3ee;
+    --amber: #fbbf24; --emerald: #34d399; --violet: #a78bfa;
+    --rose: #fb7185; --slate: #94a3b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  /* Stars background */
+  .stars {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+  .star {
+    position: absolute; background: white; border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite;
+    animation-delay: var(--delay); opacity: 0.3;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.5); }
+  }
+  .container {
+    position: relative; z-index: 1; max-width: 1400px;
+    margin: 0 auto; padding: 20px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center; padding: 30px 0 20px;
+    border-bottom: 1px solid var(--border); margin-bottom: 30px;
+  }
+  .header h1 { font-size: 24px; margin-bottom: 6px; }
+  .header .subtitle { font-size: 12px; color: var(--muted); }
+  .pulse-dot {
+    display: inline-block; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    margin-right: 8px; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; gap: 16px; justify-content: center;
+    margin-bottom: 30px; flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 16px; font-size: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stat-pill .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .live-indicator {
+    color: var(--emerald); font-size: 11px;
+  }
+
+  /* Agents grid */
+  .section-title {
+    font-size: 14px; color: var(--muted); margin-bottom: 16px;
+    text-transform: uppercase; letter-spacing: 2px;
+  }
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px; margin-bottom: 40px;
+  }
+  .agent-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 16px; text-align: center;
+    transition: all 0.3s ease; position: relative; overflow: hidden;
+  }
+  .agent-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .agent-card.active { border-color: var(--emerald); box-shadow: 0 0 20px rgba(52,211,153,0.1); }
+  .agent-card.working { animation: workPulse 1.5s ease-in-out infinite; }
+  @keyframes workPulse {
+    0%,100% { box-shadow: 0 0 5px rgba(52,211,153,0.1); }
+    50% { box-shadow: 0 0 25px rgba(52,211,153,0.25); }
+  }
+  .agent-card.error { border-color: var(--rose); }
+  .agent-avatar {
+    font-size: 48px; margin-bottom: 8px; position: relative;
+    display: inline-block;
+  }
+  .agent-status-dot {
+    position: absolute; bottom: 4px; right: -6px;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid var(--card);
+    transition: background 0.3s;
+  }
+  .status-idle { background: #475569; }
+  .status-working { background: var(--emerald); }
+  .status-waiting { background: var(--amber); }
+  .status-error { background: var(--rose); }
+  .status-done { background: var(--accent); }
+  .agent-name {
+    font-size: 11px; font-weight: 600; margin-bottom: 4px;
+    color: var(--text);
+  }
+  .agent-role {
+    font-size: 9px; color: var(--muted); margin-bottom: 6px;
+  }
+  .agent-task {
+    font-size: 9px; color: var(--accent);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Kanban board */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px; margin-bottom: 40px;
+  }
+  @media (max-width: 900px) { .kanban { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 500px) { .kanban { grid-template-columns: 1fr; } }
+  .kanban-col {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; min-height: 200px;
+  }
+  .kanban-col-header {
+    font-size: 11px; font-weight: 600; margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .kanban-count {
+    background: var(--border); border-radius: 10px;
+    padding: 2px 8px; font-size: 10px;
+  }
+  .kanban-card {
+    background: rgba(30,41,59,0.5); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; margin-bottom: 8px;
+    font-size: 11px; transition: all 0.2s;
+  }
+  .kanban-card:hover { border-color: var(--accent); }
+  .kanban-card .task-title { color: var(--text); margin-bottom: 4px; }
+  .kanban-card .task-meta {
+    font-size: 9px; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+
+  /* Event log */
+  .event-log {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; max-height: 300px;
+    overflow-y: auto; margin-bottom: 40px;
+  }
+  .event-log .section-title { margin-bottom: 12px; }
+  .event-item {
+    font-size: 10px; padding: 6px 0; border-bottom: 1px solid rgba(30,41,59,0.5);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .event-time { color: var(--muted); white-space: nowrap; min-width: 70px; }
+  .event-type {
+    padding: 1px 6px; border-radius: 4px; font-size: 9px;
+    white-space: nowrap; min-width: 70px; text-align: center;
+  }
+  .ev-created { background: rgba(34,211,238,0.2); color: var(--accent); }
+  .ev-claimed { background: rgba(52,211,153,0.2); color: var(--emerald); }
+  .ev-completed { background: rgba(167,139,250,0.2); color: var(--violet); }
+  .ev-blocked { background: rgba(251,113,133,0.2); color: var(--rose); }
+  .event-detail { color: var(--text); flex: 1; }
+
+  .footer {
+    text-align: center; font-size: 10px; color: var(--muted);
+    padding: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <div class="header">
+    <h1><span class="pulse-dot"></span>Product Launcher AI</h1>
+    <div class="subtitle">Multi-Agent Dashboard · <span class="live-indicator" id="liveDot">● LIVE</span> · <span id="updateTime">—</span></div>
+  </div>
+
+  <div class="status-bar" id="statusBar"></div>
+
+  <div class="section-title">🧑‍💻 AI Агенты</div>
+  <div class="agents-grid" id="agentsGrid"></div>
+
+  <div class="section-title">📋 Kanban Task Board</div>
+  <div class="kanban" id="kanban"></div>
+
+  <div class="section-title">📜 Живой лог</div>
+  <div class="event-log" id="eventLog"></div>
+
+  <div class="footer">Product Launcher AI · Dashboard v1.0</div>
+</div>
+
+<script>
+const API = 'http://localhost:8765/api/board';
+const STATUSES = ['todo', 'ready', 'in_progress', 'done', 'blocked'];
+const STATUS_LABELS = {
+  todo: '📋 Todo', ready: '🟡 Ready',
+  in_progress: '🟢 In Progress', done: '✅ Done', blocked: '🔴 Blocked'
+};
+const STATUS_COLORS = {
+  todo: '#64748b', ready: '#fbbf24',
+  in_progress: '#34d399', done: '#22d3ee', blocked: '#fb7185'
+};
+
+// Generate stars
+(function() {
+  const stars = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    const size = Math.random() * 2 + 0.5;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.setProperty('--dur', (Math.random() * 3 + 2) + 's');
+    star.style.setProperty('--delay', (Math.random() * 3) + 's');
+    stars.appendChild(star);
+  }
+})();
+
+function getAgentStatus(agentName, tasks) {
+  const agentTasks = tasks.filter(t => t.assignee === agentName);
+  if (agentTasks.length === 0) return 'idle';
+  const inProgress = agentTasks.filter(t => t.status === 'in_progress');
+  if (inProgress.length > 0) return 'working';
+  const ready = agentTasks.filter(t => t.status === 'ready');
+  if (ready.length > 0) return 'waiting';
+  const blocked = agentTasks.filter(t => t.status === 'blocked');
+  if (blocked.length > 0) return 'error';
+  const done = agentTasks.filter(t => t.status === 'done');
+  if (done.length > 0 && done.length === agentTasks.length) return 'done';
+  return 'idle';
+}
+
+function renderAgents(agents, tasks) {
+  const grid = document.getElementById('agentsGrid');
+  let html = '';
+  for (const [key, agent] of Object.entries(agents)) {
+    const status = getAgentStatus(key, tasks);
+    const statusClass = {
+      idle: 'status-idle', working: 'status-working',
+      waiting: 'status-waiting', error: 'status-error', done: 'status-done'
+    }[status] || 'status-idle';
+    const cardClass = status === 'working' ? 'active working' :
+                      status === 'error' ? 'error' : '';
+    const agentTasks = tasks.filter(t => t.assignee === key && t.status === 'in_progress');
+    const currentTask = agentTasks.length > 0 ? agentTasks[0].title : '—';
+    html += `
+      <div class="agent-card ${cardClass}">
+        <div class="agent-avatar">
+          ${agent.emoji}
+          <div class="agent-status-dot ${statusClass}"></div>
+        </div>
+        <div class="agent-name">${agent.name}</div>
+        <div class="agent-role" style="color:${agent.color}">@${key}</div>
+        <div class="agent-task">${currentTask}</div>
+      </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderKanban(tasks) {
+  const kanban = document.getElementById('kanban');
+  let html = '';
+  for (const status of STATUSES) {
+    const colTasks = tasks.filter(t => t.status === status);
+    html += `<div class="kanban-col">
+      <div class="kanban-col-header" style="color:${STATUS_COLORS[status]}">
+        ${STATUS_LABELS[status]}
+        <span class="kanban-count">${colTasks.length}</span>
+      </div>`;
+    for (const t of colTasks) {
+      html += `<div class="kanban-card">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          <span>@${t.assignee}</span>
+          <span>${t.id?.slice(0,10) || ''}</span>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  kanban.innerHTML = html;
+}
+
+function renderStatusBar(statusCounts) {
+  const bar = document.getElementById('statusBar');
+  let total = Object.values(statusCounts).reduce((a,b) => a+b, 0);
+  let html = '';
+  for (const status of STATUSES) {
+    const count = statusCounts[status] || 0;
+    html += `<div class="stat-pill">
+      <div class="dot" style="background:${STATUS_COLORS[status]}"></div>
+      ${STATUS_LABELS[status]}: ${count}
+    </div>`;
+  }
+  html += `<div class="stat-pill">Total: ${total}</div>`;
+  bar.innerHTML = html;
+}
+
+function renderEvents(events) {
+  const log = document.getElementById('eventLog');
+  if (!events || events.length === 0) {
+    log.innerHTML = '<div style="color:var(--muted);font-size:11px;padding:20px;text-align:center">Нет событий. Создайте задачу через hermes kanban create</div>';
+    return;
+  }
+  let html = '';
+  for (const ev of events.slice(0, 15)) {
+    const time = ev.time ? ev.time.slice(11, 19) : '--:--:--';
+    const typeClass = {
+      created: 'ev-created', claimed: 'ev-claimed',
+      completed: 'ev-completed', blocked: 'ev-blocked'
+    }[ev.type] || '';
+    const detail = ev.payload?.summary || ev.payload?.reason || ev.type;
+    html += `<div class="event-item">
+      <span class="event-time">${time}</span>
+      <span class="event-type ${typeClass}">${ev.type}</span>
+      <span class="event-detail">${detail} <span style="color:var(--muted)">[${ev.task_id?.slice(0,10)}]</span></span>
+    </div>`;
+  }
+  log.innerHTML = html;
+}
+
+async function refresh() {
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+    renderAgents(data.agents || {}, data.tasks || []);
+    renderKanban(data.tasks || []);
+    renderStatusBar(data.status_counts || {});
+    renderEvents(data.events || []);
+    document.getElementById('updateTime').textContent =
+      new Date().toLocaleTimeString('ru-RU');
+  } catch (e) {
+    console.error('Dashboard fetch error:', e);
+    document.getElementById('liveDot').textContent = '⚠ OFFLINE';
+  }
+}
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+
+</body>
+</html>
