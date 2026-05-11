@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Launcher AI — Agent Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 24px;
+  }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+  /* ─── AGENT GRID ─── */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .agent-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+  .agent-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .status-idle { background: var(--muted); animation: none; }
+  .status-working { background: var(--green); }
+  .status-waiting { background: var(--yellow); }
+  .status-error { background: var(--red); }
+  .status-done { background: var(--purple); animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .agent-emoji { font-size: 36px; text-align: center; margin: 8px 0; }
+  .agent-name { font-weight: 600; text-align: center; font-size: 13px; }
+  .agent-role { color: var(--muted); font-size: 11px; text-align: center; margin-top: 2px; }
+  .agent-task {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .agent-model {
+    font-size: 10px;
+    color: var(--blue);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* ─── KANBAN ─── */
+  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+  .kanban-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 120px;
+  }
+  .kanban-col h3 { font-size: 13px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .kanban-col.todo h3 { color: var(--muted); }
+  .kanban-col.ready h3 { color: var(--yellow); }
+  .kanban-col.progress h3 { color: var(--green); }
+  .kanban-col.done h3 { color: var(--purple); }
+  .kanban-task {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+  .kanban-task .task-id { color: var(--blue); font-weight: 600; }
+  .kanban-task .task-agent { color: var(--muted); font-size: 10px; margin-top: 2px; }
+
+  /* ─── LOG ─── */
+  .log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-size: 12px;
+  }
+  .log h3 { margin-bottom: 8px; font-size: 13px; }
+  .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(48,54,61,0.5); }
+  .log-time { color: var(--muted); margin-right: 8px; }
+  .log-agent { color: var(--blue); margin-right: 8px; }
+  .log-ok { color: var(--green); }
+  .log-err { color: var(--red); }
+
+  .footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<h1>🤖 Product Launcher AI</h1>
+<p class="subtitle">12 агентов · 2081 пост в базе знаний · бюджет $0.64-1.04/запуск</p>
+
+<!-- ─── AGENT CARDS ─── -->
+<div class="agent-grid" id="agents"></div>
+
+<!-- ─── KANBAN ─── -->
+<h2 style="font-size:16px;margin-bottom:12px;">📋 Kanban Board</h2>
+<div class="kanban">
+  <div class="kanban-col todo">
+    <h3>📥 Todo</h3>
+    <div id="kanban-todo"></div>
+  </div>
+  <div class="kanban-col ready">
+    <h3>⏳ Ready</h3>
+    <div id="kanban-ready"></div>
+  </div>
+  <div class="kanban-col progress">
+    <h3>⚡ In Progress</h3>
+    <div id="kanban-progress"></div>
+  </div>
+  <div class="kanban-col done">
+    <h3>✅ Done</h3>
+    <div id="kanban-done"></div>
+  </div>
+</div>
+
+<!-- ─── LIVE LOG ─── -->
+<h2 style="font-size:16px;margin-bottom:12px;">📡 Live Log</h2>
+<div class="log" id="log"></div>
+
+<p class="footer">🔄 Auto-refresh every 3s · Product Launcher AI v0.1</p>
+
+<script>
+// ─── AGENT DATA ───
+const AGENTS = [
+  { id: 1,  name: "Оркестратор",      role: "Управление пайплайном",        model: "DeepSeek-V4-Pro", emoji: "🧠", status: "waiting" },
+  { id: 2,  name: "OCR Extractor",    role: "Чтение брошюр",               model: "DeepSeek-OCR 2 локально", emoji: "👁️", status: "idle" },
+  { id: 3,  name: "Product Analyst",  role: "Анализ продукта",             model: "DeepSeek-V4-Pro", emoji: "🔬", status: "idle" },
+  { id: 4,  name: "Content Strategist", role: "Стратегия и Tone of Voice", model: "Claude Sonnet 4", emoji: "📝", status: "idle" },
+  { id: 5,  name: "Website Gen",      role: "Лендинг HTML/Tailwind",       model: "Codex / GPT-5.5", emoji: "🌐", status: "idle" },
+  { id: 6,  name: "TikTok Gen",       role: "Сценарии + видео-промпты",    model: "Claude Sonnet 4", emoji: "🎵", status: "idle" },
+  { id: 7,  name: "Instagram Gen",    role: "Карусели + Reels",            model: "Claude Sonnet 4", emoji: "📸", status: "idle" },
+  { id: 8,  name: "Threads Gen",      role: "Треды + контент-план",        model: "Claude Sonnet 4", emoji: "🧵", status: "idle" },
+  { id: 9,  name: "Asset Gen",        role: "Логотипы, фоны, мокапы",      model: "DALL·E 3 / SDXL", emoji: "🎨", status: "idle" },
+  { id: 10, name: "QA Text",          role: "Проверка текстов",            model: "GPT-4o / DeepSeek", emoji: "✅", status: "idle" },
+  { id: 11, name: "QA Visual",        role: "Проверка изображений",        model: "DeepSeek-V4-Pro", emoji: "🖼️", status: "idle" },
+  { id: 12, name: "QA Cross",         role: "Кросс-платформенный QA",      model: "DeepSeek-V4-Pro", emoji: "🔗", status: "idle" },
+];
+
+// ─── KANBAN TASKS ───
+const KANBAN = {
+  todo: [
+    { id: "T11", title: "Кросс-платформенная проверка", agent: "QA Cross" },
+    { id: "T10", title: "Визуальный QA output", agent: "QA Visual" },
+    { id: "T9",  title: "Генерация ассетов", agent: "Asset Gen" },
+  ],
+  ready: [
+    { id: "T8",  title: "Threads контент", agent: "Threads Gen" },
+    { id: "T7",  title: "Instagram контент", agent: "Instagram Gen" },
+  ],
+  progress: [
+    { id: "T5",  title: "TikTok сценарии", agent: "TikTok Gen" },
+    { id: "T4",  title: "Генерация сайта", agent: "Website Gen" },
+  ],
+  done: [
+    { id: "T3",  title: "Контент-стратегия", agent: "Content Strategist" },
+    { id: "T2",  title: "Анализ продукта", agent: "Product Analyst" },
+    { id: "T1",  title: "OCR брошюры", agent: "OCR Extractor" },
+  ],
+};
+
+// ─── LOG ───
+let LOG = [
+  { time: "11:45:02", agent: "Оркестратор", msg: "Pipeline started for product #1", ok: true },
+  { time: "11:45:04", agent: "OCR Extractor", msg: "Extracted text from 3 images (98% confidence)", ok: true },
+  { time: "11:45:09", agent: "Product Analyst", msg: "KB populated: product + brand + market", ok: true },
+  { time: "11:45:17", agent: "Content Strategist", msg: "Strategy ready: friendly tone, IG+TikTok focus", ok: true },
+  { time: "11:45:18", agent: "Оркестратор", msg: "Dispatching parallel generation (4 agents)", ok: true },
+  { time: "11:45:35", agent: "Website Gen", msg: "Landing page generated: 3 sections, mobile-first", ok: true },
+];
+
+// ─── RENDER ───
+function statusClass(s) {
+  return 'status-' + s;
+}
+function statusLabel(s) {
+  const labels = { idle: 'Ожидает', working: 'Работает', waiting: 'Готов', error: 'Ошибка', done: 'Завершён' };
+  return labels[s] || s;
+}
+
+function renderAgents() {
+  const grid = document.getElementById('agents');
+  grid.innerHTML = AGENTS.map(a => `
+    <div class="agent-card">
+      <div class="agent-status ${statusClass(a.status)}" title="${statusLabel(a.status)}"></div>
+      <div class="agent-emoji">${a.emoji}</div>
+      <div class="agent-name">${a.name}</div>
+      <div class="agent-role">${a.role}</div>
+      <div class="agent-task">${statusLabel(a.status)}</div>
+      <div class="agent-model">${a.model}</div>
+    </div>
+  `).join('');
+}
+
+function renderKanban() {
+  for (const [col, tasks] of Object.entries(KANBAN)) {
+    const el = document.getElementById('kanban-' + col);
+    el.innerHTML = tasks.map(t => `
+      <div class="kanban-task">
+        <span class="task-id">${t.id}</span> ${t.title}
+        <div class="task-agent">👤 ${t.agent}</div>
+      </div>
+    `).join('');
+  }
+}
+
+function renderLog() {
+  document.getElementById('log').innerHTML = LOG.map(e => `
+    <div class="log-entry">
+      <span class="log-time">${e.time}</span>
+      <span class="log-agent">[${e.agent}]</span>
+      <span class="${e.ok ? 'log-ok' : 'log-err'}">${e.msg}</span>
+    </div>
+  `).join('');
+}
+
+function tick() {
+  // Simulate agent activity
+  const active = AGENTS[Math.floor(Math.random() * AGENTS.length)];
+  if (active.status === 'idle') active.status = 'working';
+  else if (active.status === 'working') active.status = 'done';
+  
+  LOG.push({
+    time: new Date().toLocaleTimeString('en-GB'),
+    agent: active.name,
+    msg: active.status === 'working' ? 'Started task...' : 'Task completed ✓',
+    ok: true,
+  });
+  if (LOG.length > 20) LOG.shift();
+
+  renderAgents();
+  renderKanban();
+  renderLog();
+}
+
+renderAgents();
+renderKanban();
+renderLog();
+setInterval(tick, 3000);
+</script>
+</body>
+</html>
