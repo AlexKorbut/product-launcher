@@ -18,6 +18,7 @@ sys.path.insert(0, str(sys_path))
 from product_launcher.kanban import KanbanBoard
 from product_launcher.agents import LLMClient
 from product_launcher.agents.product_analyst import ProductAnalyst
+from product_launcher.agents.content_strategist import ContentStrategist
 
 PROJECT_DIR = Path(__file__).resolve().parent
 DB_PATH = PROJECT_DIR / "kanban_live.db"
@@ -25,7 +26,7 @@ DB_PATH = PROJECT_DIR / "kanban_live.db"
 AGENTS = [
     {"agent": "ocr-extractor",       "title": "OCR брошюры",           "real": False, "depends_on": []},
     {"agent": "product-analyst",     "title": "Анализ продукта",       "real": True,  "depends_on": ["ocr-extractor"]},
-    {"agent": "content-strategist",  "title": "Контент-стратегия",     "real": False, "depends_on": ["product-analyst"]},
+    {"agent": "content-strategist",  "title": "Контент-стратегия",     "real": True,  "depends_on": ["product-analyst"]},
     {"agent": "website-gen",         "title": "Генерация лендинга",    "real": False, "depends_on": ["content-strategist"]},
     {"agent": "tiktok-gen",          "title": "TikTok сценарии",       "real": False, "depends_on": ["content-strategist"]},
     {"agent": "instagram-gen",       "title": "Instagram карусели",    "real": False, "depends_on": ["content-strategist"]},
@@ -86,6 +87,14 @@ def agent_worker(agent_name: str, task_title: str, is_real: bool, depends_on: li
                 "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 "images": [],
             })
+            output = result
+            
+        elif is_real and agent_name == "content-strategist":
+            # ── REAL: Content Strategist ──
+            analyst_output = dep_outputs.get("product-analyst", {})
+            
+            strategist = ContentStrategist()
+            result = strategist.run({"kb": analyst_output})
             output = result
         else:
             # ── SIMULATED: placeholder ──
