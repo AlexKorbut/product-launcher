@@ -9,7 +9,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent
+PROJECT_DIR = Path(__file__).resolve().parent
 DB_PATH = PROJECT_DIR / "kanban_live.db"
 DASHBOARD_PATH = PROJECT_DIR / "agent-dashboard.html"
 PORT = 8080
@@ -61,12 +61,23 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             data = get_kanban_data()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(json.dumps(data, ensure_ascii=False).encode())
         elif self.path == "/" or self.path == "/dashboard":
-            self.path = "/agent-dashboard.html"
-            super().do_GET()
+            # Serve dashboard HTML directly
+            try:
+                with open(DASHBOARD_PATH, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except FileNotFoundError:
+                self.send_error(404, "Dashboard not found")
         else:
+            # Serve static files
             super().do_GET()
 
     def log_message(self, format, *args):

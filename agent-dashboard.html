@@ -129,6 +129,7 @@
 
 <h1>🤖 Product Launcher AI</h1>
 <p class="subtitle">12 агентов · 2081 пост в базе знаний · бюджет $0.64-1.04/запуск</p>
+<div id="status-bar" style="font-size:12px;margin-bottom:12px;color:var(--muted);">⏳ Подключение...</div>
 
 <!-- ─── AGENT CARDS ─── -->
 <div class="agent-grid" id="agents"></div>
@@ -141,16 +142,16 @@
     <div id="kanban-todo"></div>
   </div>
   <div class="kanban-col ready">
-    <h3>⏳ Ready</h3>
-    <div id="kanban-ready"></div>
-  </div>
-  <div class="kanban-col progress">
     <h3>⚡ In Progress</h3>
     <div id="kanban-progress"></div>
   </div>
   <div class="kanban-col done">
     <h3>✅ Done</h3>
     <div id="kanban-done"></div>
+  </div>
+  <div class="kanban-col todo">
+    <h3>❌ Failed</h3>
+    <div id="kanban-failed"></div>
   </div>
 </div>
 
@@ -204,12 +205,13 @@ const STATUS_CSS = {
 };
 
 let AGENTS = [];
-let KANBAN = { todo: [], in_progress: [], done: [], failed: [] };
-let LOG = [];
+let KANBAN_DATA = { todo: [], in_progress: [], done: [], failed: [] };
+let LOG_DATA = [];
 
 async function fetchState() {
   try {
     const resp = await fetch('/api/kanban');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
 
     // Build agent cards from task data
@@ -225,60 +227,33 @@ async function fetchState() {
     }
 
     AGENTS = Object.values(agentMap);
-    KANBAN = data.kanban || { todo: [], in_progress: [], done: [], failed: [] };
+    KANBAN_DATA = data.kanban || { todo: [], in_progress: [], done: [], failed: [] };
 
     // Build log from tasks
-    LOG = [];
-    for (const t of [...(KANBAN.done||[]), ...(KANBAN.failed||[])]) {
-      LOG.push({
+    LOG_DATA = [];
+    for (const t of [...(KANBAN_DATA.done||[]), ...(KANBAN_DATA.failed||[])]) {
+      LOG_DATA.push({
         time: (t.completed_at || '').slice(11, 19) || '--:--:--',
         agent: t.agent,
         msg: t.status === 'done' ? t.title + ' ✓' : t.title + ' ✗',
         ok: t.status === 'done',
       });
     }
-    for (const t of (KANBAN.in_progress||[])) {
-      LOG.push({
+    for (const t of (KANBAN_DATA.in_progress||[])) {
+      LOG_DATA.push({
         time: (t.claimed_at || '').slice(11, 19) || '--:--:--',
         agent: t.agent,
         msg: '⏳ ' + t.title + '...',
         ok: true,
       });
     }
-  } catch(e) {}
+    document.getElementById('status-bar').textContent = '🟢 Live | ' + new Date().toLocaleTimeString();
+    document.getElementById('status-bar').style.color = 'var(--green)';
+  } catch(e) {
+    document.getElementById('status-bar').textContent = '🔴 Ошибка: ' + e.message;
+    document.getElementById('status-bar').style.color = 'var(--red)';
+  }
 }
-
-// ─── KANBAN TASKS ───
-const KANBAN = {
-  todo: [
-    { id: "T11", title: "Кросс-платформенная проверка", agent: "QA Cross" },
-    { id: "T10", title: "Визуальный QA output", agent: "QA Visual" },
-    { id: "T9",  title: "Генерация ассетов", agent: "Asset Gen" },
-  ],
-  ready: [
-    { id: "T8",  title: "Threads контент", agent: "Threads Gen" },
-    { id: "T7",  title: "Instagram контент", agent: "Instagram Gen" },
-  ],
-  progress: [
-    { id: "T5",  title: "TikTok сценарии", agent: "TikTok Gen" },
-    { id: "T4",  title: "Генерация сайта", agent: "Website Gen" },
-  ],
-  done: [
-    { id: "T3",  title: "Контент-стратегия", agent: "Content Strategist" },
-    { id: "T2",  title: "Анализ продукта", agent: "Product Analyst" },
-    { id: "T1",  title: "OCR брошюры", agent: "OCR Extractor" },
-  ],
-};
-
-// ─── LOG ───
-let LOG = [
-  { time: "11:45:02", agent: "Оркестратор", msg: "Pipeline started for product #1", ok: true },
-  { time: "11:45:04", agent: "OCR Extractor", msg: "Extracted text from 3 images (98% confidence)", ok: true },
-  { time: "11:45:09", agent: "Product Analyst", msg: "KB populated: product + brand + market", ok: true },
-  { time: "11:45:17", agent: "Content Strategist", msg: "Strategy ready: friendly tone, IG+TikTok focus", ok: true },
-  { time: "11:45:18", agent: "Оркестратор", msg: "Dispatching parallel generation (4 agents)", ok: true },
-  { time: "11:45:35", agent: "Website Gen", msg: "Landing page generated: 3 sections, mobile-first", ok: true },
-];
 
 // ─── RENDER ───
 function statusClass(s) {
@@ -314,15 +289,14 @@ function renderAgents() {
 function renderKanban() {
   const statuses = ['todo','in_progress','done','failed'];
   const labels = ['📥 Todo','⚡ In Progress','✅ Done','❌ Failed'];
+  const colIds = ['kanban-todo','kanban-progress','kanban-done','kanban-failed'];
   for (let i = 0; i < 4; i++) {
     const col = statuses[i];
-    const el = document.getElementById('kanban-' + (col === 'todo' ? 'todo' : col === 'in_progress' ? 'progress' : col === 'done' ? 'done' : 'done'));
-    // Map 'failed' to a different display
-    const displayEl = document.getElementById(col === 'failed' ? 'kanban-done' : 'kanban-' + (col === 'todo' ? 'todo' : col === 'in_progress' ? 'progress' : 'done'));
-    if (!displayEl) continue;
-    const tasks = (KANBAN[col] || []).slice(0, 10);
-    displayEl.parentElement.querySelector('h3').textContent = labels[i] + ' (' + tasks.length + ')';
-    displayEl.innerHTML = tasks.map(t => `
+    const el = document.getElementById(colIds[i]);
+    if (!el) continue;
+    const tasks = (KANBAN_DATA[col] || []).slice(0, 10);
+    el.parentElement.querySelector('h3').textContent = labels[i] + ' (' + tasks.length + ')';
+    el.innerHTML = tasks.map(t => `
       <div class="kanban-task">
         <span class="task-id">${t.id}</span> ${t.title}
         <div class="task-agent">👤 ${t.agent}</div>
@@ -332,7 +306,7 @@ function renderKanban() {
 }
 
 function renderLog() {
-  document.getElementById('log').innerHTML = LOG.map(e => `
+  document.getElementById('log').innerHTML = LOG_DATA.map(e => `
     <div class="log-entry">
       <span class="log-time">${e.time}</span>
       <span class="log-agent">[${e.agent}]</span>
