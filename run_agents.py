@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from product_launcher.kanban import KanbanBoard
 from product_launcher.agents.project_manager import ProjectManager
+from product_launcher.agents.ocr_extractor import OCRExtractor
 from product_launcher.agents.product_analyst import ProductAnalyst
 from product_launcher.agents.content_strategist import ContentStrategist
 from product_launcher.agents.web_designer import WebDesigner
@@ -63,8 +64,12 @@ def specialist_worker(agent_name: str, task_title: str, depends_on: list[str]):
 
     try:
         if agent_name == "ocr-extractor":
-            time.sleep(random.uniform(0.3, 1))
-            output = {"text": "AI-powered coffee machine. LiDAR navigation, 50 recipes, self-cleaning, UV sterilization. $499 MSRP.", "confidence": 0.95}
+            agent = OCRExtractor()
+            task_data = task.get("input_data", "{}")
+            if isinstance(task_data, str):
+                task_data = json.loads(task_data)
+            raw_text = task_data.get("product_hint", "Demo product")
+            output = agent.run({"raw_text": raw_text})
 
         elif agent_name == "product-analyst":
             ocr = deps.get("ocr-extractor", {})
@@ -173,13 +178,12 @@ def main():
     print("=" * 60)
 
     pm = ProjectManager()
-    pm_result = pm.run({
-        "brief": {
-            "product_hint": "AI-powered robot vacuum cleaner with UV sterilization",
-            "requirements": "Landing page + social media content for Instagram, TikTok, Threads",
-            "images": [],
-        }
-    })
+    brief = {
+        "product_hint": "AI-powered robot vacuum cleaner with UV sterilization",
+        "requirements": "Landing page + social media content for Instagram, TikTok, Threads",
+        "images": [],
+    }
+    pm_result = pm.run({"brief": brief})
 
     team = pm_result.get("team", DEFAULT_TEAM)
     criteria = pm_result.get("acceptance_criteria", [])
@@ -189,11 +193,16 @@ def main():
 
     # ── PHASE 1: Create tasks in Kanban ──
     print("📋 Creating tasks...")
+    product_hint = brief.get("product_hint", "")
     for member in team:
+        input_data = {"role": member["role"], "priority": member["priority"]}
+        # Pass product hint to OCR agent
+        if member["agent"] == "ocr-extractor":
+            input_data["product_hint"] = product_hint
         tid = board.add_task(
             title=member["task"],
             agent=member["agent"],
-            input_data={"role": member["role"], "priority": member["priority"]},
+            input_data=input_data,
         )
         deps = ", ".join(member["depends_on"]) if member["depends_on"] else "—"
         print(f"  + {tid}: [{member['role']}] {member['task']}  (depends: {deps})")
