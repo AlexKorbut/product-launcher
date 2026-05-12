@@ -109,7 +109,7 @@ class QAText(BaseAgent):
         ]
 
         response = self.llm.chat(messages, temperature=0.2, max_tokens=2048)
-        result = self._parse(response) or self._fallback()
+        result = self._parse(response) or self._fallback_with_heuristics(content, strategy, kb)
 
         passed = result.get("passed", False)
         self.log(f"{'✅' if passed else '⚠️'} QA текста: {result.get('score', 0)}/100")
@@ -128,8 +128,49 @@ class QAText(BaseAgent):
                     pass
         return None
 
-    def _fallback(self) -> dict:
-        return {"score": 70, "issues": [], "suggestions": ["Требуется ручная проверка"], "passed": True}
+    def _fallback_with_heuristics(self, content: dict, strategy: dict, kb: dict) -> dict:
+        """Heuristic checks when LLM unavailable. Checks website content structure."""
+        issues = []
+        suggestions = ["Требуется ручная проверка (LLM недоступен)"]
+        product_name = kb.get("product", {}).get("name", "Продукт")
+
+        # Check content has sections
+        sections = content.get("sections", [])
+        if not sections:
+            issues.append({"severity": "critical", "text": "Контент пуст — нет секций", "location": "all"})
+            return {"score": 0, "issues": issues, "suggestions": suggestions, "passed": False}
+
+        # Check for CTA
+        has_cta = any(
+            s.get("id") == "cta_final" or (s.get("cta") and s["cta"].strip())
+            for s in sections
+        )
+        if not has_cta:
+            issues.append({"severity": "major", "text": "Нет призыва к действию (CTA)", "location": "cta_final"})
+
+        # Check hero has headline
+        hero = next((s for s in sections if s.get("id") == "hero"), None)
+        if hero:
+            if not hero.get("headline"):
+                issues.append({"severity": "major", "text": "Hero-секция без заголовка", "location": "hero/headline"})
+            # Check product name in hero
+            if product_name != "Продукт" and hero.get("headline") and product_name.lower() not in hero.get("headline", "").lower():
+                issues.append({"severity": "minor", "text": "Hero не содержит название продукта", "location": "hero/headline"})
+        else:
+            issues.append({"severity": "critical", "text": "Отсутствует hero-секция", "location": "hero"})
+
+        # Check features section
+        features = next((s for s in sections if s.get("id") == "features"), None)
+        if features and not features.get("items"):
+            issues.append({"severity": "minor", "text": "Секция features без фич", "location": "features/items"})
+
+        score = max(0, 100 - len(issues) * 15)
+        passed = not any(i["severity"] == "critical" for i in issues)
+
+        if not issues:
+            suggestions.append("Структурные проверки пройдены")
+
+        return {"score": score, "issues": issues, "suggestions": suggestions, "passed": passed}
 
 
 class QAVisual(BaseAgent):
@@ -156,7 +197,7 @@ class QAVisual(BaseAgent):
         ]
 
         response = self.llm.chat(messages, temperature=0.2, max_tokens=2048)
-        result = self._parse(response) or self._fallback()
+        result = self._parse(response) or self._fallback_with_heuristics(assets, strategy, kb)
 
         passed = result.get("passed", False)
         self.log(f"{'✅' if passed else '⚠️'} QA визуала: {result.get('score', 0)}/100")
@@ -175,8 +216,54 @@ class QAVisual(BaseAgent):
                     pass
         return None
 
-    def _fallback(self) -> dict:
-        return {"score": 70, "issues": [], "suggestions": ["Требуется ручная проверка"], "passed": True}
+    def _fallback_with_heuristics(self, assets: list, strategy: dict, kb: dict) -> dict:
+        """Heuristic checks for visual assets when LLM unavailable."""
+        issues = []
+        suggestions = ["Требуется ручная проверка (LLM недоступен)"]
+        brand_colors = kb.get("brand", {}).get("colors", {})
+
+        # Check we have assets at all
+        if not assets:
+            issues.append({"severity": "critical", "text": "Нет ассетов для проверки", "asset_id": "none"})
+            return {"score": 0, "issues": issues, "suggestions": suggestions, "passed": False}
+
+        # Check required asset types
+        asset_types = {a.get("type") for a in assets if a.get("type")}
+        required_types = {"hero_image", "feature_icon", "social_post"}
+        missing_types = required_types - asset_types
+        if missing_types:
+            issues.append({
+                "severity": "major",
+                "text": f"Не хватает типов ассетов: {', '.join(missing_types)}",
+                "asset_id": "all",
+            })
+
+        # Check dimensions
+        for a in assets:
+            dims = a.get("dimensions", "")
+            if dims and dims not in ["1200x628", "512x512", "1080x1080", "1200×628", "512×512", "1080×1080"]:
+                issues.append({
+                    "severity": "minor",
+                    "text": f"Нестандартный размер {dims} для {a.get('id', '?')}",
+                    "asset_id": a.get("id", "?"),
+                })
+
+        # Check each asset has a description
+        for a in assets:
+            if not a.get("description") or len(a.get("description", "")) < 20:
+                issues.append({
+                    "severity": "major",
+                    "text": f"Слишком короткое описание для {a.get('id', '?')}",
+                    "asset_id": a.get("id", "?"),
+                })
+
+        score = max(0, 100 - len(issues) * 12)
+        passed = not any(i["severity"] == "critical" for i in issues)
+
+        if not issues:
+            suggestions.append("Структурные проверки ассетов пройдены")
+
+        return {"score": score, "issues": issues, "suggestions": suggestions, "passed": passed}
 
 
 class QACross(BaseAgent):
@@ -205,7 +292,7 @@ class QACross(BaseAgent):
         ]
 
         response = self.llm.chat(messages, temperature=0.2, max_tokens=2048)
-        result = self._parse(response) or self._fallback()
+        result = self._parse(response) or self._fallback_with_heuristics(platforms, strategy, kb)
 
         passed = result.get("passed", False)
         self.log(f"{'✅' if passed else '⚠️'} Кросс-QA: {result.get('score', 0)}/100")
@@ -224,5 +311,65 @@ class QACross(BaseAgent):
                     pass
         return None
 
-    def _fallback(self) -> dict:
-        return {"score": 70, "issues": [], "platform_gaps": [], "overall": "Требуется ручная проверка", "passed": True}
+    def _fallback_with_heuristics(self, platforms: dict, strategy: dict, kb: dict) -> dict:
+        """Heuristic cross-platform coverage check when LLM unavailable."""
+        issues = []
+        platform_gaps = []
+        suggestions = ["Требуется ручная проверка (LLM недоступен)"]
+
+        required = ["website", "tiktok", "instagram", "threads"]
+        present = list(platforms.keys())
+
+        # Check platform coverage
+        missing = [p for p in required if p not in present]
+        if missing:
+            for m in missing:
+                platform_gaps.append(f"Контент для {m} отсутствует")
+                issues.append({
+                    "severity": "critical",
+                    "text": f"Платформа {m} не покрыта контентом",
+                    "platforms": [m],
+                })
+            return {
+                "score": 0,
+                "consistency_issues": issues,
+                "platform_gaps": platform_gaps,
+                "overall": f"Критические пробелы: {len(missing)} платформ не покрыты.",
+                "passed": False,
+            }
+
+        # All platforms present — structural check
+        checks = {
+            "website": lambda c: c.get("sections"),
+            "tiktok": lambda c: c.get("scripts"),
+            "instagram": lambda c: c.get("carousels"),
+            "threads": lambda c: c.get("threads"),
+        }
+
+        for plat in required:
+            checker = checks[plat]
+            content = platforms.get(plat, {})
+            if not checker(content):
+                platform_gaps.append(f"{plat}: контент пуст")
+                issues.append({
+                    "severity": "major",
+                    "text": f"Контент для {plat} пуст",
+                    "platforms": [plat],
+                })
+
+        score = max(0, 100 - len(issues) * 20)
+        passed = not any(i["severity"] == "critical" for i in issues)
+
+        if not issues:
+            overall = f"Все {len(present)} платформ покрыты контентом."
+            suggestions.append("Кросс-платформенная проверка структуры пройдена")
+        else:
+            overall = f"Найдено {len(issues)} проблем кросс-платформенной согласованности."
+
+        return {
+            "score": score,
+            "consistency_issues": issues,
+            "platform_gaps": platform_gaps,
+            "overall": overall,
+            "passed": passed,
+        }
