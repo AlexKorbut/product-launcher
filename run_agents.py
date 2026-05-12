@@ -233,10 +233,25 @@ def main():
                     path = Path(data["file_path"])
                     if path.exists():
                         print(f"   🌐 Landing page: {path} ({path.stat().st_size} bytes)")
-                    else:
-                        print(f"   ⚠️ Landing page file not found: {path}")
-                else:
-                    print("   ⚠️ Web Designer did not produce file_path")
+            except:
+                pass
+
+    # Save ProductKB for persistence
+    for task in board.get_tasks_by_status("done"):
+        if task["agent"] == "product-analyst":
+            try:
+                data = json.loads(task.get("output_json", "{}"))
+                kb_path = OUTPUT_DIR / "product-kb.json"
+                kb_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+                print(f"   💾 ProductKB saved: {kb_path}")
+            except:
+                pass
+        if task["agent"] == "content-strategist":
+            try:
+                data = json.loads(task.get("output_json", "{}"))
+                strategy_path = OUTPUT_DIR / "content-strategy.json"
+                strategy_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+                print(f"   📝 Strategy saved: {strategy_path}")
             except:
                 pass
 
