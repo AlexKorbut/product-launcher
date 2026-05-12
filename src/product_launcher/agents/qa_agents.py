@@ -109,7 +109,12 @@ class QAText(BaseAgent):
         ]
 
         response = self.llm.chat(messages, temperature=0.2, max_tokens=2048)
-        result = self._parse(response) or self._fallback_with_heuristics(content, strategy, kb)
+        result = self._parse(response)
+        # Detect mock response and use heuristic fallback instead
+        if result and result.get("note", "").startswith("MOCK"):
+            result = None
+        if not result:
+            result = self._fallback_with_heuristics(content, strategy, kb)
 
         passed = result.get("passed", False)
         self.log(f"{'✅' if passed else '⚠️'} QA текста: {result.get('score', 0)}/100")
@@ -197,7 +202,11 @@ class QAVisual(BaseAgent):
         ]
 
         response = self.llm.chat(messages, temperature=0.2, max_tokens=2048)
-        result = self._parse(response) or self._fallback_with_heuristics(assets, strategy, kb)
+        result = self._parse(response)
+        if result and result.get("note", "").startswith("MOCK"):
+            result = None
+        if not result:
+            result = self._fallback_with_heuristics(assets, strategy, kb)
 
         passed = result.get("passed", False)
         self.log(f"{'✅' if passed else '⚠️'} QA визуала: {result.get('score', 0)}/100")
@@ -292,7 +301,11 @@ class QACross(BaseAgent):
         ]
 
         response = self.llm.chat(messages, temperature=0.2, max_tokens=2048)
-        result = self._parse(response) or self._fallback_with_heuristics(platforms, strategy, kb)
+        result = self._parse(response)
+        if result and result.get("note", "").startswith("MOCK"):
+            result = None
+        if not result:
+            result = self._fallback_with_heuristics(platforms, strategy, kb)
 
         passed = result.get("passed", False)
         self.log(f"{'✅' if passed else '⚠️'} Кросс-QA: {result.get('score', 0)}/100")
