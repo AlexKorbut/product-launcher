@@ -15,9 +15,11 @@ PM_PROMPT = """Ты — Project Manager в IT-компании. Твоя зад�
 4. web_designer (website-gen) — создаёт лендинг (HTML/CSS, Claude Design подход)
 5. smm_tiktok (tiktok-gen) — пишет сценарии для TikTok
 6. smm_instagram (instagram-gen) — создаёт контент для Instagram
-7. smm_threads (threads-gen) — пишет треды для Threads
-8. art_director (asset-gen) — описывает визуальные ассеты и brand kit
-9. qa_lead (qa-cross) — финальная проверка всех материалов
+8. smm_threads (threads-gen) — пишет треды для Threads
+9. art_director (asset-gen) — описывает визуальные ассеты и brand kit
+10. qa_text (qa-text) — проверяет качество текстового контента
+11. qa_visual (qa-visual) — проверяет качество визуальных ассетов
+12. qa_lead (qa-cross) — финальная проверка всех материалов
 
 Верни ТОЛЬКО валидный JSON:
 
@@ -47,7 +49,8 @@ PM_PROMPT = """Ты — Project Manager в IT-компании. Твоя зад�
 - product_analyst зависит от ocr_specialist
 - content_strategist зависит от product_analyst
 - web_designer, smm_*, art_director — priority 4, зависит от content_strategist
-- qa_lead зависит от всех генераторов, priority 5
+- qa_text, qa_visual — priority 5, зависят от website-gen и asset-gen соответственно
+- qa_lead зависит от всех генераторов и qa_text/qa_visual, priority 6
 - acceptance_criteria: 2-4 конкретных проверяемых критерия
 - На русском языке
 """
@@ -130,12 +133,15 @@ class ProjectManager(BaseAgent):
                 {"role": "smm_instagram",     "agent": "instagram-gen",    "task": "Карусели и Reels для Instagram",       "priority": 4, "depends_on": ["content-strategist"]},
                 {"role": "smm_threads",       "agent": "threads-gen",      "task": "Текстовые треды для Threads",          "priority": 4, "depends_on": ["content-strategist"]},
                 {"role": "art_director",      "agent": "asset-gen",        "task": "Визуальные ассеты и brand kit",        "priority": 4, "depends_on": ["content-strategist"]},
-                {"role": "qa_lead",           "agent": "qa-cross",         "task": "Финальная проверка всех материалов",    "priority": 5, "depends_on": ["website-gen", "tiktok-gen", "instagram-gen", "threads-gen", "asset-gen"]},
+                {"role": "qa_text",           "agent": "qa-text",         "task": "Проверка текстового контента",          "priority": 5, "depends_on": ["website-gen"]},
+                {"role": "qa_visual",         "agent": "qa-visual",       "task": "Проверка визуальных ассетов",           "priority": 5, "depends_on": ["asset-gen"]},
+                {"role": "qa_lead",           "agent": "qa-cross",         "task": "Финальная проверка всех материалов",    "priority": 6, "depends_on": ["website-gen", "tiktok-gen", "instagram-gen", "threads-gen", "asset-gen", "qa-text", "qa-visual"]},
             ],
             "acceptance_criteria": [
                 "Лендинг — самодостаточный HTML, открывается в браузере",
                 "Контент на всех платформах (Instagram, TikTok, Threads)",
                 "Тон соответствует brand guidelines",
-                "Все материалы прошли QA-проверку",
+                "QA-текст и QA-визуал отработали без critical-ошибок",
+                "Все материалы прошли кросс-проверку",
             ],
         }

@@ -33,7 +33,9 @@ DEFAULT_TEAM = [
     {"role": "smm_instagram",     "agent": "instagram-gen",    "task": "Контент Instagram",              "priority": 4, "depends_on": ["content-strategist"]},
     {"role": "smm_threads",       "agent": "threads-gen",      "task": "Треды Threads",                  "priority": 4, "depends_on": ["content-strategist"]},
     {"role": "art_director",      "agent": "asset-gen",        "task": "Визуальные ассеты + brand kit",  "priority": 4, "depends_on": ["content-strategist"]},
-    {"role": "qa_lead",           "agent": "qa-cross",         "task": "Финальная кросс-проверка",       "priority": 5, "depends_on": ["website-gen", "tiktok-gen", "instagram-gen", "threads-gen", "asset-gen"]},
+    {"role": "qa_text",           "agent": "qa-text",         "task": "QA текстового контента",           "priority": 5, "depends_on": ["website-gen"]},
+    {"role": "qa_visual",         "agent": "qa-visual",       "task": "QA визуальных ассетов",            "priority": 5, "depends_on": ["asset-gen"]},
+    {"role": "qa_lead",           "agent": "qa-cross",         "task": "Финальная кросс-проверка",       "priority": 6, "depends_on": ["website-gen", "tiktok-gen", "instagram-gen", "threads-gen", "asset-gen", "qa-text", "qa-visual"]},
 ]
 
 
