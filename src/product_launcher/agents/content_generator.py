@@ -2,7 +2,7 @@
 Content Generators — create platform-specific content from strategy.
 Website, TikTok, Instagram, Threads — each with specialized prompts.
 """
-import json
+import json, re
 from . import BaseAgent, LLMClient
 
 
@@ -230,16 +230,33 @@ class ContentGenerator(BaseAgent):
         return "\n".join(parts)
 
     def _parse(self, response: str) -> dict | None:
+        # Strip markdown code blocks
+        clean = response
+        m = re.search(r'```(?:json)?\s*\n(.*?)\n```', clean, re.DOTALL)
+        if m:
+            clean = m.group(1)
+        
         try:
-            return json.loads(response)
+            return json.loads(clean)
         except json.JSONDecodeError:
-            start = response.find("{")
-            end = response.rfind("}")
-            if start >= 0 and end > start:
+            pass
+        
+        # Find outermost JSON object
+        start = clean.find("{")
+        end = clean.rfind("}")
+        if start >= 0 and end > start:
+            try:
+                return json.loads(clean[start:end + 1])
+            except json.JSONDecodeError:
+                # Try fixing common JSON issues
+                fixed = clean[start:end + 1]
+                # Fix unescaped newlines in strings
+                fixed = re.sub(r'(?<!")(?<!\\)\n(?!")', '\\n', fixed)
                 try:
-                    return json.loads(response[start:end + 1])
+                    return json.loads(fixed)
                 except json.JSONDecodeError:
                     pass
+        
         return None
 
     def _fallback(self, strategy: dict, kb: dict) -> dict:

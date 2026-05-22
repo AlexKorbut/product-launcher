@@ -4,11 +4,11 @@ Product Launcher — PM-driven multi-agent system.
 PM creates plan → specialists execute → QA validates → PM reviews.
 IT-company structure: PM + OCR + Analyst + Strategist + Designers + SMM + QA.
 """
-import json, sys, time, random, multiprocessing
+import json, sys, time, random, multiprocessing, os, subprocess
 from pathlib import Path
 from datetime import datetime, timezone
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from product_launcher.kanban import KanbanBoard
 from product_launcher.agents.project_manager import ProjectManager
@@ -22,6 +22,28 @@ from product_launcher.agents.qa_agents import QAText, QAVisual, QACross
 
 DB_PATH = Path(__file__).resolve().parent / "kanban_live.db"
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+PHOTOS_DIR = Path(__file__).resolve().parent / "input" / "raw_photos"
+
+# Tesseract binary (pre-built, no sudo)
+TESSERACT_BIN = "/tmp/tess_extract/usr/bin/tesseract"
+TESSERACT_LD = "/tmp/tess_extract/usr/lib/x86_64-linux-gnu"
+TESSERACT_DATA = "/tmp/tess_extract/usr/share/tesseract-ocr/5/tessdata"
+
+
+def run_tesseract(image_path: str, lang: str = "chi_sim+eng") -> str:
+    """Run tesseract OCR on an image, return extracted text."""
+    out_path = f"/tmp/tess_out_{Path(image_path).stem}"
+    env = os.environ.copy()
+    env["LD_LIBRARY_PATH"] = f"{TESSERACT_LD}:{env.get('LD_LIBRARY_PATH', '')}"
+    try:
+        subprocess.run(
+            [TESSERACT_BIN, image_path, out_path, "--tessdata-dir", TESSERACT_DATA, "-l", lang],
+            env=env, capture_output=True, timeout=60, check=True
+        )
+        return Path(out_path + ".txt").read_text(encoding="utf-8", errors="replace").strip()
+    except Exception as e:
+        print(f"  [ocr] ⚠️ Tesseract failed: {e}")
+        return ""
 
 # PM's standard team plan (used as fallback)
 DEFAULT_TEAM = [
@@ -42,7 +64,7 @@ DEFAULT_TEAM = [
 def get_dep(board, agent_name):
     for task in board.get_tasks_by_status("done"):
         if task["agent"] == agent_name:
-            try: return json.loads(task.get("output_json", "{}"))
+            try: return json.loads(task.get("output_data", "{}"))
             except: return {}
     return {}
 
@@ -70,7 +92,22 @@ def specialist_worker(agent_name: str, task_title: str, depends_on: list[str]):
             task_data = task.get("input_data", "{}")
             if isinstance(task_data, str):
                 task_data = json.loads(task_data)
-            raw_text = task_data.get("product_hint", "Demo product")
+            
+            # Try real OCR on brochure images first
+            raw_text = ""
+            images = task_data.get("images", [])
+            if images:
+                for img in images:
+                    img_path = PHOTOS_DIR / img
+                    if img_path.exists():
+                        text = run_tesseract(str(img_path))
+                        if text:
+                            raw_text += text + "\n\n"
+            
+            # Fallback to product_hint if OCR failed
+            if not raw_text.strip():
+                raw_text = task_data.get("product_hint", "Demo product")
+            
             output = agent.run({"raw_text": raw_text})
 
         elif agent_name == "product-analyst":
@@ -181,9 +218,9 @@ def main():
 
     pm = ProjectManager()
     brief = {
-        "product_hint": "AI-powered robot vacuum cleaner with UV sterilization",
+        "product_hint": "SIBERT Intelligent Traditional Chinese Medicine Robot — AI-powered therapeutic robot replacing 5 professional TCM technicians. Features moxibustion, fascia therapy, cupping, and Gua Sha modalities. Serves 10 patients/day. Models: AI-2, AI-6, ZP-6, BG-6, WY5-10/WY5-15A. Built-in treatment plans, differentiated store operations.",
         "requirements": "Landing page + social media content for Instagram, TikTok, Threads",
-        "images": [],
+        "images": ["brochure_1.jpg", "brochure_2.jpg"],
     }
     pm_result = pm.run({"brief": brief})
 
@@ -198,9 +235,10 @@ def main():
     product_hint = brief.get("product_hint", "")
     for member in team:
         input_data = {"role": member["role"], "priority": member["priority"]}
-        # Pass product hint to OCR agent
+        # Pass product hint AND images to OCR agent
         if member["agent"] == "ocr-extractor":
             input_data["product_hint"] = product_hint
+            input_data["images"] = brief.get("images", [])
         tid = board.add_task(
             title=member["task"],
             agent=member["agent"],
@@ -228,7 +266,7 @@ def main():
     for task in board.get_tasks_by_status("done"):
         if task["agent"] == "website-gen":
             try:
-                data = json.loads(task.get("output_json", "{}"))
+                data = json.loads(task.get("output_data", "{}"))
                 if "file_path" in data:
                     path = Path(data["file_path"])
                     if path.exists():
@@ -240,7 +278,7 @@ def main():
     for task in board.get_tasks_by_status("done"):
         if task["agent"] == "product-analyst":
             try:
-                data = json.loads(task.get("output_json", "{}"))
+                data = json.loads(task.get("output_data", "{}"))
                 kb_path = OUTPUT_DIR / "product-kb.json"
                 kb_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
                 print(f"   💾 ProductKB saved: {kb_path}")
@@ -248,7 +286,7 @@ def main():
                 pass
         if task["agent"] == "content-strategist":
             try:
-                data = json.loads(task.get("output_json", "{}"))
+                data = json.loads(task.get("output_data", "{}"))
                 strategy_path = OUTPUT_DIR / "content-strategy.json"
                 strategy_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
                 print(f"   📝 Strategy saved: {strategy_path}")
