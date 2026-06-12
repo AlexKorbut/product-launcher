@@ -1,12 +1,11 @@
-"""Post generation/rewrite via the Anthropic API (async client, adaptive thinking)."""
+"""Post generation/rewrite via a pluggable LLM provider (Anthropic, OpenAI, …)."""
 import difflib
 from dataclasses import dataclass
-
-import anthropic
 
 from app.config import get_settings
 from app.models import Channel
 from app.services.credits import cost_to_credits
+from app.services.llm import get_provider
 
 REWRITE_MODES = {
     1: (
@@ -55,12 +54,8 @@ class GenerationResult:
         return cost_to_credits(self.cost_usd)
 
 
-def _client() -> anthropic.AsyncAnthropic:
-    return anthropic.AsyncAnthropic(api_key=get_settings().anthropic_api_key)
-
-
 def build_system_prompt(channel: Channel) -> str:
-    if channel.prompt_template.strip():
+    if (channel.prompt_template or "").strip():
         return channel.prompt_template
     return SYSTEM_TEMPLATE.format(
         topic=channel.topic or "не задана",
@@ -77,84 +72,39 @@ def similarity(a: str, b: str) -> float:
     return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 
-def _cost(input_tokens: int, output_tokens: int) -> float:
+async def _run(channel: Channel, user_prompt: str, source_text: str | None) -> GenerationResult:
     s = get_settings()
-    return (
-        input_tokens * s.price_input_per_mtok / 1_000_000
-        + output_tokens * s.price_output_per_mtok / 1_000_000
+    provider = get_provider(channel.llm_provider or None)
+    result = await provider.complete(
+        system=build_system_prompt(channel),
+        user=user_prompt,
+        max_tokens=s.generation_max_tokens,
+        model=channel.llm_model or None,
+    )
+    return GenerationResult(
+        text=result.text,
+        model=result.model,
+        input_tokens=result.input_tokens,
+        output_tokens=result.output_tokens,
+        cost_usd=provider.cost_usd(result),
+        similarity_to_source=similarity(source_text, result.text) if source_text else 0.0,
     )
 
 
 async def rewrite_post(channel: Channel, source_text: str) -> GenerationResult:
-    """Rewrite a donor post for the given channel."""
-    s = get_settings()
+    """Rewrite a donor post for the given channel using its configured provider."""
     user_prompt = (
         f"{REWRITE_MODES[channel.rewrite_level]}\n\n"
         f"Исходный пост:\n<<<\n{source_text}\n>>>\n\n"
         f"Напиши итоговый пост."
     )
-    response = await _client().messages.create(
-        model=s.generation_model,
-        max_tokens=s.generation_max_tokens,
-        thinking={"type": "adaptive"},
-        system=[
-            {
-                "type": "text",
-                "text": build_system_prompt(channel),
-                # The channel profile is stable across requests — cache it.
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-    text = next((b.text for b in response.content if b.type == "text"), "").strip()
-    usage = response.usage
-    input_tokens = (
-        usage.input_tokens
-        + (usage.cache_creation_input_tokens or 0)
-        + (usage.cache_read_input_tokens or 0)
-    )
-    return GenerationResult(
-        text=text,
-        model=response.model,
-        input_tokens=input_tokens,
-        output_tokens=usage.output_tokens,
-        cost_usd=_cost(usage.input_tokens, usage.output_tokens),
-        similarity_to_source=similarity(source_text, text),
-    )
+    return await _run(channel, user_prompt, source_text)
 
 
 async def generate_from_topic(channel: Channel) -> GenerationResult:
     """Generate a post from scratch using only the channel topic profile."""
-    s = get_settings()
-    response = await _client().messages.create(
-        model=s.generation_model,
-        max_tokens=s.generation_max_tokens,
-        thinking={"type": "adaptive"},
-        system=[
-            {
-                "type": "text",
-                "text": build_system_prompt(channel),
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    "Придумай и напиши новый пост для канала по его тематике. "
-                    "Выбери конкретный, интересный аудитории угол — не общие слова."
-                ),
-            }
-        ],
+    user_prompt = (
+        "Придумай и напиши новый пост для канала по его тематике. "
+        "Выбери конкретный, интересный аудитории угол — не общие слова."
     )
-    text = next((b.text for b in response.content if b.type == "text"), "").strip()
-    usage = response.usage
-    return GenerationResult(
-        text=text,
-        model=response.model,
-        input_tokens=usage.input_tokens,
-        output_tokens=usage.output_tokens,
-        cost_usd=_cost(usage.input_tokens, usage.output_tokens),
-        similarity_to_source=0.0,
-    )
+    return await _run(channel, user_prompt, None)

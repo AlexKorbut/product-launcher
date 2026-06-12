@@ -20,12 +20,24 @@ class Settings(BaseSettings):
     signup_bonus_credits: int = 500       # welcome credits for a new organization
     referral_bonus_credits: int = 300     # credits granted to referrer + referee
 
-    # --- Anthropic / generation ---
-    anthropic_api_key: str = ""
-    generation_model: str = "claude-opus-4-8"
+    # --- Generation (LLM provider) ---
+    # Default provider used when a channel doesn't override it.
+    # Supported: "anthropic" | "openai" (OpenAI-compatible, incl. OpenRouter/DeepSeek/local).
+    llm_provider: str = "anthropic"
     generation_max_tokens: int = 16000
-    price_input_per_mtok: float = 5.00
-    price_output_per_mtok: float = 25.00
+
+    # Anthropic
+    anthropic_api_key: str = ""
+    generation_model: str = "claude-opus-4-8"   # default Anthropic model
+    price_input_per_mtok: float = 5.00          # Anthropic input $/1M
+    price_output_per_mtok: float = 25.00        # Anthropic output $/1M
+
+    # OpenAI-compatible (set base_url for OpenRouter / DeepSeek / Together / local)
+    openai_api_key: str = ""
+    openai_base_url: str = ""                    # empty => api.openai.com
+    openai_model: str = "gpt-4o"
+    openai_price_input_per_mtok: float = 2.50    # tune to your model/provider
+    openai_price_output_per_mtok: float = 10.00
 
     # --- Credits / billing economics ---
     # credits charged per post = ceil(cost_usd * markup / credit_price_usd)

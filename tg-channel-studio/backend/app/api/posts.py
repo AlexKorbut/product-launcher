@@ -53,15 +53,20 @@ async def generate(
     if await credits.get_balance(session, p.org_id) <= 0:
         raise HTTPException(402, "Недостаточно кредитов — пополни баланс")
 
-    if body.raw_post_id:
-        raw = await session.get(RawPost, body.raw_post_id)
-        if raw is None:
-            raise HTTPException(404, "Raw post not found")
-        result = await rewrite_post(channel, raw.text)
-        media = raw.media or {}
-    else:
-        result = await generate_from_topic(channel)
-        media = {}
+    try:
+        if body.raw_post_id:
+            raw = await session.get(RawPost, body.raw_post_id)
+            if raw is None:
+                raise HTTPException(404, "Raw post not found")
+            result = await rewrite_post(channel, raw.text)
+            media = raw.media or {}
+        else:
+            result = await generate_from_topic(channel)
+            media = {}
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — surface LLM provider errors cleanly
+        raise HTTPException(502, f"Ошибка генерации: {e}")
 
     text = result.text
     if channel.signature.strip():

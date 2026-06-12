@@ -63,6 +63,8 @@ export interface Channel {
   prompt_template: string;
   signature: string;
   rewrite_level: number;
+  llm_provider: string;
+  llm_model: string;
   auto_publish: boolean;
   posts_per_day: number;
   quiet_hours_start: number;

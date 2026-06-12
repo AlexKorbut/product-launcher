@@ -83,6 +83,9 @@ async def process_raw_post(raw_id: int) -> None:
                 except anthropic.APIStatusError as e:
                     await log(WORKER, f"anthropic error {e.status_code}: {e.message}", "error", org_id=sub.org_id)
                     continue
+                except Exception as e:  # noqa: BLE001 — other providers (OpenAI, etc.)
+                    await log(WORKER, f"llm error ({channel.name}): {e}", "error", org_id=sub.org_id)
+                    continue
 
                 if not result.text:
                     await log(WORKER, f"raw {raw.id} -> {channel.name}: empty generation", "error", org_id=sub.org_id)

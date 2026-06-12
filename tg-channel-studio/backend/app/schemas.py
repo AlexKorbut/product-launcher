@@ -47,6 +47,8 @@ class ChannelBase(BaseModel):
     prompt_template: str = ""
     signature: str = ""
     rewrite_level: int = Field(2, ge=1, le=3)
+    llm_provider: str = ""   # "" => global default; "anthropic" | "openai"
+    llm_model: str = ""      # "" => provider default model
     auto_publish: bool = True
     posts_per_day: int = Field(4, ge=1, le=48)
     quiet_hours_start: int = Field(23, ge=0, le=23)

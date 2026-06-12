@@ -178,6 +178,10 @@ class Channel(Base):
 
     rewrite_level: Mapped[int] = mapped_column(Integer, default=2)  # 1 light, 2 deep, 3 inspired
 
+    # Per-channel LLM override; empty => use global defaults (LLM_PROVIDER / model).
+    llm_provider: Mapped[str] = mapped_column(String(32), default="")  # "" | anthropic | openai
+    llm_model: Mapped[str] = mapped_column(String(64), default="")
+
     auto_publish: Mapped[bool] = mapped_column(Boolean, default=True)
     posts_per_day: Mapped[int] = mapped_column(Integer, default=4)
     quiet_hours_start: Mapped[int] = mapped_column(Integer, default=23)

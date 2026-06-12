@@ -6,7 +6,7 @@ import { api, Channel } from '@/lib/api';
 const EMPTY = {
   name: '', username: '', bot_token: '', topic: '', tone: 'expert', audience: '',
   language: 'ru', hashtags: '', banned_topics: '', prompt_template: '', signature: '',
-  rewrite_level: 2, auto_publish: true, posts_per_day: 4,
+  rewrite_level: 2, llm_provider: '', llm_model: '', auto_publish: true, posts_per_day: 4,
   quiet_hours_start: 23, quiet_hours_end: 8, tz_offset_minutes: 180,
 };
 
@@ -134,6 +134,20 @@ export default function ChannelsPage() {
             </div>
             <label>Подпись (добавляется к каждому посту)</label>
             <input value={editing.signature || ''} onChange={(e) => setEditing({ ...editing, signature: e.target.value })} />
+            <div className="form-grid">
+              <div>
+                <label>LLM-провайдер</label>
+                <select value={editing.llm_provider || ''} onChange={(e) => setEditing({ ...editing, llm_provider: e.target.value })}>
+                  <option value="">По умолчанию (из настроек)</option>
+                  <option value="anthropic">Anthropic (Claude)</option>
+                  <option value="openai">OpenAI-совместимый</option>
+                </select>
+              </div>
+              <div>
+                <label>Модель (пусто = дефолт провайдера)</label>
+                <input value={editing.llm_model || ''} onChange={(e) => setEditing({ ...editing, llm_model: e.target.value })} placeholder="claude-opus-4-8 / gpt-4o / …" />
+              </div>
+            </div>
             <div className="form-grid">
               <div>
                 <label>Уровень рерайта: {editing.rewrite_level} ({['', 'лёгкий', 'глубокий', 'по мотивам'][editing.rewrite_level || 2]})</label>
