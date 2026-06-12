@@ -1,0 +1,16 @@
+.env
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+*.session
+*.session-journal
+
+node_modules/
+.next/
+out/
+
+.DS_Store
+*.log

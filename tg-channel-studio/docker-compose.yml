@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-studio}
+      POSTGRES_DB: studio
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  worker-ingest:
+    build: ./backend
+    command: python -m app.workers.ingest
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
+    volumes:
+      - telethon:/srv/session
+    working_dir: /srv/session
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  worker-generator:
+    build: ./backend
+    command: python -m app.workers.generator
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  worker-publisher:
+    build: ./backend
+    command: python -m app.workers.publisher
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    environment:
+      API_URL: http://backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  telethon:
