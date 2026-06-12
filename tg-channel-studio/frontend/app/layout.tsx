@@ -9,7 +9,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
+      <head>
+        {/* Apply saved theme before paint to avoid a flash of the default theme. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('tgcs_theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         <div className="layout">
           <Nav />

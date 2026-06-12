@@ -12,6 +12,7 @@ const items = [
   { href: '/queue', label: '📝 Очередь' },
   { href: '/calendar', label: '🗓 Календарь' },
   { href: '/billing', label: '💳 Биллинг' },
+  { href: '/settings', label: '⚙️ Настройки' },
 ];
 
 const PUBLIC = ['/login', '/signup'];
