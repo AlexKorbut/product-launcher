@@ -33,21 +33,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ maxWidth: 360, margin: '80px auto' }}>
-      <h1>Вход</h1>
-      <form onSubmit={submit}>
-        <label>Email</label>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-        <label>Пароль</label>
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-        {error && <div className="error">{error}</div>}
-        <div style={{ marginTop: 18 }}>
-          <button disabled={busy}>{busy ? '...' : 'Войти'}</button>
-        </div>
-      </form>
-      <p style={{ marginTop: 16 }} className="muted">
-        Нет аккаунта? <a href="/signup">Зарегистрироваться</a>
-      </p>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">TG Channel Studio</div>
+        <p className="muted" style={{ marginTop: 0, marginBottom: 22 }}>С возвращением 👋</p>
+        <form onSubmit={submit}>
+          <label>Email</label>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <label>Пароль</label>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          {error && <div className="error">{error}</div>}
+          <div style={{ marginTop: 20 }}>
+            <button disabled={busy} style={{ width: '100%' }}>{busy ? '...' : 'Войти'}</button>
+          </div>
+        </form>
+        <p style={{ marginTop: 18 }} className="muted">
+          Нет аккаунта? <a href="/signup">Зарегистрироваться</a>
+        </p>
+      </div>
     </div>
   );
 }

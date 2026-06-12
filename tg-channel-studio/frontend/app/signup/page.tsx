@@ -41,25 +41,29 @@ function SignupForm() {
   }
 
   return (
-    <div style={{ maxWidth: 380, margin: '70px auto' }}>
-      <h1>Регистрация</h1>
-      <p className="muted">500 приветственных кредитов сразу после регистрации.</p>
-      <form onSubmit={submit}>
-        <label>Email</label>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-        <label>Пароль (мин. 6 символов)</label>
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={6} />
-        <label>Название организации</label>
-        <input value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Моя организация" />
-        {params.get('ref') && <p className="muted">Реферальный код: {params.get('ref')} (+300 кредитов)</p>}
-        {error && <div className="error">{error}</div>}
-        <div style={{ marginTop: 18 }}>
-          <button disabled={busy}>{busy ? '...' : 'Создать аккаунт'}</button>
-        </div>
-      </form>
-      <p style={{ marginTop: 16 }} className="muted">
-        Уже есть аккаунт? <a href="/login">Войти</a>
-      </p>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">TG Channel Studio</div>
+        <p className="muted" style={{ marginTop: 0, marginBottom: 22 }}>
+          🎁 500 приветственных кредитов сразу после регистрации
+        </p>
+        <form onSubmit={submit}>
+          <label>Email</label>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <label>Пароль (мин. 6 символов)</label>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={6} />
+          <label>Название организации</label>
+          <input value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Моя организация" />
+          {params.get('ref') && <p className="muted" style={{ marginTop: 10 }}>Реферальный код: {params.get('ref')} (+300 кредитов)</p>}
+          {error && <div className="error">{error}</div>}
+          <div style={{ marginTop: 20 }}>
+            <button disabled={busy} style={{ width: '100%' }}>{busy ? '...' : 'Создать аккаунт'}</button>
+          </div>
+        </form>
+        <p style={{ marginTop: 18 }} className="muted">
+          Уже есть аккаунт? <a href="/login">Войти</a>
+        </p>
+      </div>
     </div>
   );
 }
