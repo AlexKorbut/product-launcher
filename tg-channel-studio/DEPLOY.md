@@ -152,6 +152,35 @@ git pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -
 
 ---
 
+## 11. Авто-деплой через GitHub Actions
+Workflow `.github/workflows/deploy.yml`: на push в `main` прогоняет ruff+pytest, затем по SSH
+заходит на сервер, делает `git pull` и пересобирает compose. Деплой идёт только если тесты прошли.
+
+**Разовая подготовка сервера:**
+```bash
+# 1. Клонировать репо в DEPLOY_PATH и один раз поднять вручную (шаги 2–5 выше)
+# 2. Создать deploy-ключ для CI:
+ssh-keygen -t ed25519 -f ~/deploy_key -N ""
+cat ~/deploy_key.pub >> ~/.ssh/authorized_keys   # публичный — на сервер
+# приватный ~/deploy_key -> в секрет SSH_KEY (целиком, включая BEGIN/END)
+```
+
+**Secrets в GitHub** (Settings → Secrets and variables → Actions):
+
+| Secret | Значение |
+|---|---|
+| `SSH_HOST` | IP/домен сервера |
+| `SSH_USER` | пользователь (напр. `deploy`) |
+| `SSH_KEY` | приватный ключ `~/deploy_key` целиком |
+| `SSH_PORT` | (опц.) SSH-порт, по умолчанию 22 |
+| `DEPLOY_PATH` | путь к репо на сервере, напр. `/srv/tg-channel-studio` |
+
+> На сервере должен быть доступ `git pull` без пароля (deploy-ключ репозитория или https-токен)
+> и установленный Docker для пользователя `SSH_USER` (добавь его в группу `docker`).
+> Ручной деплой по кнопке — вкладка Actions → Deploy → Run workflow.
+
+---
+
 ## Managed-альтернативы (если не хочешь VPS)
 - **Frontend/Marketing** → Vercel (два проекта). На дашборде задай `API_URL` на адрес backend; на лендинге — `NEXT_PUBLIC_SITE_URL`/`NEXT_PUBLIC_APP_URL`.
 - **Backend + воркеры** → Railway/Render/Fly.io: один web-сервис (uvicorn) + 3 worker-сервиса из того же образа (команды `python -m app.workers.*`).
