@@ -58,6 +58,27 @@ def create_token(user_id: int, org_id: int, email: str) -> str:
     return jwt.encode(payload, s.secret_key, algorithm="HS256")
 
 
+def create_purpose_token(user_id: int, purpose: str, ttl_hours: int = 24) -> str:
+    """Stateless signed token for email verification / password reset."""
+    s = get_settings()
+    payload = {
+        "sub": str(user_id),
+        "purpose": purpose,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=ttl_hours),
+    }
+    return jwt.encode(payload, s.secret_key, algorithm="HS256")
+
+
+def verify_purpose_token(token: str, purpose: str) -> int | None:
+    try:
+        payload = jwt.decode(token, get_settings().secret_key, algorithms=["HS256"])
+    except jwt.PyJWTError:
+        return None
+    if payload.get("purpose") != purpose:
+        return None
+    return int(payload["sub"])
+
+
 async def require_org(
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> Principal:

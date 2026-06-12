@@ -26,11 +26,73 @@ class TokenResponse(BaseModel):
 class MeResponse(BaseModel):
     user_id: int
     email: str
+    email_verified: bool
     org_id: int
     org_name: str
+    role: str
     credit_balance: int
     plan: str
     referral_code: str
+
+
+class TokenBody(BaseModel):
+    token: str
+
+
+class RequestResetBody(BaseModel):
+    email: EmailStr
+
+
+class ResetBody(BaseModel):
+    token: str
+    password: str = Field(min_length=6)
+
+
+class OrgMembership(BaseModel):
+    org_id: int
+    org_name: str
+    role: str
+
+
+class SwitchOrgBody(BaseModel):
+    org_id: int
+
+
+# --- Team ---
+
+class InviteBody(BaseModel):
+    email: EmailStr
+    role: str = "editor"
+
+
+class MemberOut(BaseModel):
+    user_id: int
+    email: str
+    role: str
+
+
+class InvitationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: str
+    role: str
+    accepted: bool
+    created_at: datetime
+
+
+class RoleBody(BaseModel):
+    role: str
+
+
+# --- Raw feed ---
+
+class RawPostOut(BaseModel):
+    id: int
+    source_username: str
+    text: str
+    media: dict
+    posted_at: datetime | None
+    fetched_at: datetime
 
 
 # --- Channels ---

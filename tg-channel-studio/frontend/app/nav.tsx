@@ -9,13 +9,14 @@ const items = [
   { href: '/', label: '📊 Дашборд' },
   { href: '/channels', label: '📣 Каналы' },
   { href: '/donors', label: '🔭 Доноры' },
+  { href: '/raw', label: '🗂 Сырьё' },
   { href: '/queue', label: '📝 Очередь' },
   { href: '/calendar', label: '🗓 Календарь' },
   { href: '/billing', label: '💳 Биллинг' },
   { href: '/settings', label: '⚙️ Настройки' },
 ];
 
-const PUBLIC = ['/login', '/signup'];
+const PUBLIC = ['/login', '/signup', '/verify', '/reset', '/accept-invite'];
 
 export default function Nav() {
   const pathname = usePathname();

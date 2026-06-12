@@ -303,6 +303,20 @@ class WorkerLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
 
 
+class Invitation(Base):
+    """Pending invite of a user (by email) to join an organization."""
+
+    __tablename__ = "invitations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    role: Mapped[Role] = mapped_column(Enum(Role), default=Role.editor)
+    token: Mapped[str] = mapped_column(String(64), unique=True, default=lambda: secrets.token_urlsafe(24))
+    accepted: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Alert(Base):
     """Actionable notification surfaced in the dashboard."""
 

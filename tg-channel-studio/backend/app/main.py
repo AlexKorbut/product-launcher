@@ -3,7 +3,7 @@ import sqlalchemy
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, billing, channels, dashboard, donors, posts
+from app.api import auth, billing, channels, dashboard, donors, posts, raw, team
 from app.config import get_settings
 from app.db import get_engine
 
@@ -27,6 +27,8 @@ app.include_router(auth.router)
 app.include_router(channels.router)
 app.include_router(donors.router)
 app.include_router(posts.router)
+app.include_router(raw.router)
+app.include_router(team.router)
 app.include_router(billing.router)
 app.include_router(dashboard.router)
 

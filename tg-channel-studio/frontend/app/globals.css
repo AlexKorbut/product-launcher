@@ -219,11 +219,12 @@ button, .btn {
 }
 button:hover { filter: brightness(1.08); box-shadow: 0 10px 26px -8px var(--glow); }
 button:active { transform: translateY(1px); }
-button.secondary {
+button.secondary, .btn.secondary {
   background: var(--panel-2); border: 1px solid var(--border-strong); color: var(--text);
   box-shadow: none;
 }
-button.secondary:hover { background: rgba(255,255,255,.06); filter: none; }
+button.secondary:hover, .btn.secondary:hover { background: rgba(255,255,255,.06); filter: none; }
+.btn { display: inline-block; }
 button.danger { background: linear-gradient(120deg, #fb6a6a, #e0408a); box-shadow: 0 6px 20px -8px rgba(251,106,106,.6); }
 button:disabled { opacity: 0.45; cursor: default; box-shadow: none; filter: none; }
 

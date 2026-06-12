@@ -43,11 +43,42 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 export interface Me {
   user_id: number;
   email: string;
+  email_verified: boolean;
   org_id: number;
   org_name: string;
+  role: string;
   credit_balance: number;
   plan: string;
   referral_code: string;
+}
+
+export interface OrgMembership {
+  org_id: number;
+  org_name: string;
+  role: string;
+}
+
+export interface Member {
+  user_id: number;
+  email: string;
+  role: string;
+}
+
+export interface Invitation {
+  id: number;
+  email: string;
+  role: string;
+  accepted: boolean;
+  created_at: string;
+}
+
+export interface RawPost {
+  id: number;
+  source_username: string;
+  text: string;
+  media: Record<string, unknown>;
+  posted_at: string | null;
+  fetched_at: string;
 }
 
 export interface Channel {

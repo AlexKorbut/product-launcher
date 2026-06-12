@@ -62,6 +62,14 @@ class Settings(BaseSettings):
     publisher_poll_sec: int = 20
     max_rewrite_similarity: float = 0.75
 
+    # --- Email (verification, password reset, invites) ---
+    # If smtp_host is empty, emails are logged to stdout (dev mode).
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    email_from: str = "no-reply@tgchannelstudio.com"
+
     # --- Redis (rate-limiting, locks); optional ---
     redis_url: str = ""
 
