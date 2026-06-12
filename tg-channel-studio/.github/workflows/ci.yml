@@ -24,7 +24,7 @@ jobs:
         run: ruff check app
       - name: Test
         env:
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
           SECRET_KEY: ci-secret-key-long-enough-1234567890
           STRIPE_WEBHOOK_SECRET: whsec_test
           STRIPE_PRICE_CREDITS: '{"price_test": 1000}'
