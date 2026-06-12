@@ -1,0 +1,20 @@
+# Reverse proxy с автоматическим TLS (Let's Encrypt) для TG Channel Studio.
+# Замени домены и email. Запускается как сервис `caddy` в docker-compose.prod.yml.
+#
+# Маршруты:
+#   tgchannelstudio.com         -> маркетинг-лендинг (:3001)
+#   app.tgchannelstudio.com     -> дашборд (:3000), который сам проксирует /api/* в backend
+#
+# Stripe webhook URL = https://app.tgchannelstudio.com/api/billing/webhook
+
+{
+	email admin@tgchannelstudio.com
+}
+
+tgchannelstudio.com, www.tgchannelstudio.com {
+	reverse_proxy marketing:3001
+}
+
+app.tgchannelstudio.com {
+	reverse_proxy frontend:3000
+}

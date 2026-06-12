@@ -91,6 +91,7 @@ cd ../marketing && npm install && npm run dev        # лендинг :3001
 - Перед продом: смени `SECRET_KEY`, задай `CORS_ORIGINS`, закрой порты 8000/5432 за reverse-proxy, подключи `SENTRY_DSN`.
 
 ## Документы
+- [DEPLOY.md](DEPLOY.md) — пошаговый деплой в прод (VPS + Caddy/TLS, Stripe, userbot, SEO, безопасность).
 - [ROADMAP.md](ROADMAP.md) — список фич и статусы.
 - [MARKETING.md](MARKETING.md) — стратегия продвижения, SEO-кластеры, воронка, метрики.
 
