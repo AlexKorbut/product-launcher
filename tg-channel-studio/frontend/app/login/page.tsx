@@ -45,6 +45,9 @@ export default function LoginPage() {
           <button disabled={busy}>{busy ? '...' : 'Войти'}</button>
         </div>
       </form>
+      <p style={{ marginTop: 16 }} className="muted">
+        Нет аккаунта? <a href="/signup">Зарегистрироваться</a>
+      </p>
     </div>
   );
 }

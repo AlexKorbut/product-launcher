@@ -38,7 +38,17 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   return res.json();
 }
 
-// --- Types mirroring backend schemas ---
+// --- Types ---
+
+export interface Me {
+  user_id: number;
+  email: string;
+  org_id: number;
+  org_name: string;
+  credit_balance: number;
+  plan: string;
+  referral_code: string;
+}
 
 export interface Channel {
   id: number;
@@ -59,7 +69,7 @@ export interface Channel {
   quiet_hours_end: number;
   tz_offset_minutes: number;
   status: string;
-  donor_ids: number[];
+  subscription_ids: number[];
 }
 
 export interface Donor {
@@ -69,7 +79,6 @@ export interface Donor {
   poll_interval_min: number;
   filters: Record<string, unknown>;
   status: string;
-  last_message_id: number;
   last_polled_at: string | null;
   channel_ids: number[];
 }
@@ -89,6 +98,7 @@ export interface Post {
   input_tokens: number;
   output_tokens: number;
   cost_usd: number;
+  credits_charged: number;
   created_at: string;
 }
 
@@ -107,6 +117,7 @@ export interface Dashboard {
   raw_new: number;
   total_published: number;
   total_cost_usd: number;
+  credit_balance: number;
 }
 
 export interface WorkerLog {
@@ -114,5 +125,22 @@ export interface WorkerLog {
   worker: string;
   level: string;
   message: string;
+  created_at: string;
+}
+
+export interface Alert {
+  id: number;
+  kind: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface LedgerEntry {
+  id: number;
+  delta: number;
+  balance_after: number;
+  kind: string;
+  ref: string;
   created_at: string;
 }

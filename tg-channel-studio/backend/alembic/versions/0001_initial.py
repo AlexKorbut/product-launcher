@@ -1,4 +1,4 @@
-"""initial schema
+"""initial schema (v0.2 multi-tenant)
 
 Revision ID: 0001
 Revises:
@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # First revision mirrors the ORM exactly; later revisions use explicit ops.
+    # Schema is created from the ORM metadata; later revisions use explicit ops.
     Base.metadata.create_all(bind=op.get_bind())
 
 

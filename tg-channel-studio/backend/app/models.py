@@ -1,5 +1,6 @@
-"""ORM models: channels, donors, raw posts, generated posts, worker logs."""
+"""ORM models: tenancy (users/orgs), channels, donors, posts, billing, alerts."""
 import enum
+import secrets
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -23,6 +24,17 @@ from app.db import Base
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def gen_referral_code() -> str:
+    return secrets.token_urlsafe(6)
+
+
+# --- Enums ---
+
+class Role(str, enum.Enum):
+    owner = "owner"
+    editor = "editor"
 
 
 class ChannelStatus(str, enum.Enum):
@@ -52,99 +64,201 @@ class PostStatus(str, enum.Enum):
     rejected = "rejected"
 
 
-channel_donors = Table(
-    "channel_donors",
+class LedgerKind(str, enum.Enum):
+    purchase = "purchase"
+    debit = "debit"
+    bonus = "bonus"
+    refund = "refund"
+    referral = "referral"
+
+
+class AlertKind(str, enum.Enum):
+    donor_unavailable = "donor_unavailable"
+    bot_no_rights = "bot_no_rights"
+    out_of_credits = "out_of_credits"
+    publish_failed = "publish_failed"
+
+
+# --- Tenancy ---
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(Text)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    memberships: Mapped[list["Membership"]] = relationship(back_populates="user")
+
+
+class Organization(Base):
+    __tablename__ = "organizations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
+    owner_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    credit_balance: Mapped[int] = mapped_column(Integer, default=0)
+    plan: Mapped[str] = mapped_column(String(32), default="free")
+    referral_code: Mapped[str] = mapped_column(String(32), unique=True, default=gen_referral_code)
+    referred_by_org_id: Mapped[int | None] = mapped_column(
+        ForeignKey("organizations.id"), nullable=True
+    )
+    stripe_customer_id: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Membership(Base):
+    __tablename__ = "memberships"
+    __table_args__ = (UniqueConstraint("user_id", "org_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"))
+    role: Mapped[Role] = mapped_column(Enum(Role), default=Role.owner)
+
+    user: Mapped[User] = relationship(back_populates="memberships")
+
+
+# --- Billing ---
+
+class CreditLedger(Base):
+    """Append-only ledger of every credit movement (audit trail)."""
+
+    __tablename__ = "credit_ledger"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    delta: Mapped[int] = mapped_column(Integer)  # +grant / -debit
+    balance_after: Mapped[int] = mapped_column(Integer)
+    kind: Mapped[LedgerKind] = mapped_column(Enum(LedgerKind))
+    ref: Mapped[str] = mapped_column(String(128), default="")  # post id / stripe event / referral
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class StripeEvent(Base):
+    """Processed Stripe webhook events — idempotency guard."""
+
+    __tablename__ = "stripe_events"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)  # evt_...
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+# --- Channels ---
+
+channel_subscriptions = Table(
+    "channel_subscriptions",
     Base.metadata,
     Column("channel_id", ForeignKey("channels.id", ondelete="CASCADE"), primary_key=True),
-    Column("donor_id", ForeignKey("donors.id", ondelete="CASCADE"), primary_key=True),
+    Column("subscription_id", ForeignKey("donor_subscriptions.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
 class Channel(Base):
-    """A Telegram channel we own and publish to (via Bot API)."""
+    """A Telegram channel an org owns and publishes to (via Bot API)."""
 
     __tablename__ = "channels"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(255))
-    username: Mapped[str] = mapped_column(String(255), unique=True)  # @channel or -100… chat id
-    bot_token_encrypted: Mapped[str] = mapped_column(Text)            # Fernet-encrypted
+    username: Mapped[str] = mapped_column(String(255))
+    bot_token_encrypted: Mapped[str] = mapped_column(Text)
 
-    # Topic profile — drives the generation prompt
     topic: Mapped[str] = mapped_column(Text, default="")
-    tone: Mapped[str] = mapped_column(String(64), default="expert")   # expert | casual | meme | formal
+    tone: Mapped[str] = mapped_column(String(64), default="expert")
     audience: Mapped[str] = mapped_column(Text, default="")
     language: Mapped[str] = mapped_column(String(16), default="ru")
     hashtags: Mapped[str] = mapped_column(Text, default="")
     banned_topics: Mapped[str] = mapped_column(Text, default="")
-    prompt_template: Mapped[str] = mapped_column(Text, default="")    # optional manual override
-    signature: Mapped[str] = mapped_column(Text, default="")          # appended to every post
+    prompt_template: Mapped[str] = mapped_column(Text, default="")
+    signature: Mapped[str] = mapped_column(Text, default="")
 
-    # Rewrite behavior: 1 = light rewrite, 2 = deep rewrite, 3 = "inspired by" (new post on topic)
-    rewrite_level: Mapped[int] = mapped_column(Integer, default=2)
+    rewrite_level: Mapped[int] = mapped_column(Integer, default=2)  # 1 light, 2 deep, 3 inspired
 
-    # Publishing
-    auto_publish: Mapped[bool] = mapped_column(Boolean, default=True)  # False => manual review queue
+    auto_publish: Mapped[bool] = mapped_column(Boolean, default=True)
     posts_per_day: Mapped[int] = mapped_column(Integer, default=4)
-    quiet_hours_start: Mapped[int] = mapped_column(Integer, default=23)  # local hour
+    quiet_hours_start: Mapped[int] = mapped_column(Integer, default=23)
     quiet_hours_end: Mapped[int] = mapped_column(Integer, default=8)
-    tz_offset_minutes: Mapped[int] = mapped_column(Integer, default=180)  # default UTC+3
+    tz_offset_minutes: Mapped[int] = mapped_column(Integer, default=180)
 
     status: Mapped[ChannelStatus] = mapped_column(Enum(ChannelStatus), default=ChannelStatus.active)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
-    donors: Mapped[list["Donor"]] = relationship(secondary=channel_donors, back_populates="channels")
+    subscriptions: Mapped[list["DonorSubscription"]] = relationship(
+        secondary=channel_subscriptions, back_populates="channels"
+    )
     posts: Mapped[list["Post"]] = relationship(back_populates="channel", cascade="all, delete-orphan")
 
 
-class Donor(Base):
-    """A public Telegram channel we read via userbot (MTProto)."""
+# --- Donors (shared source + per-org subscription) ---
 
-    __tablename__ = "donors"
+class DonorSource(Base):
+    """A public Telegram channel, scraped ONCE for all tenants."""
+
+    __tablename__ = "donor_sources"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(255), unique=True)  # @username or t.me link slug
+    username: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     title: Mapped[str] = mapped_column(String(255), default="")
-    poll_interval_min: Mapped[int] = mapped_column(Integer, default=15)
     last_message_id: Mapped[int] = mapped_column(Integer, default=0)
     last_polled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-    # Raw-material filters: {"min_length": 100, "require_media": false,
-    #                        "include_keywords": [], "exclude_keywords": [], "skip_ads": true}
-    filters: Mapped[dict] = mapped_column(JSON, default=dict)
-
     status: Mapped[DonorStatus] = mapped_column(Enum(DonorStatus), default=DonorStatus.active)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
-    channels: Mapped[list[Channel]] = relationship(secondary=channel_donors, back_populates="donors")
-    raw_posts: Mapped[list["RawPost"]] = relationship(back_populates="donor", cascade="all, delete-orphan")
+    raw_posts: Mapped[list["RawPost"]] = relationship(
+        back_populates="source", cascade="all, delete-orphan"
+    )
+
+
+class DonorSubscription(Base):
+    """An org subscribing to a DonorSource, with its own filters and target channels."""
+
+    __tablename__ = "donor_subscriptions"
+    __table_args__ = (UniqueConstraint("org_id", "source_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    source_id: Mapped[int] = mapped_column(ForeignKey("donor_sources.id", ondelete="CASCADE"))
+    poll_interval_min: Mapped[int] = mapped_column(Integer, default=15)
+    filters: Mapped[dict] = mapped_column(JSON, default=dict)
+    status: Mapped[DonorStatus] = mapped_column(Enum(DonorStatus), default=DonorStatus.active)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    source: Mapped[DonorSource] = relationship()
+    channels: Mapped[list[Channel]] = relationship(
+        secondary=channel_subscriptions, back_populates="subscriptions"
+    )
 
 
 class RawPost(Base):
-    """Source post scraped from a donor channel."""
+    """Source post scraped from a donor source (shared across tenants)."""
 
     __tablename__ = "raw_posts"
-    __table_args__ = (UniqueConstraint("donor_id", "tg_message_id"),)
+    __table_args__ = (UniqueConstraint("source_id", "tg_message_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    donor_id: Mapped[int] = mapped_column(ForeignKey("donors.id", ondelete="CASCADE"))
+    source_id: Mapped[int] = mapped_column(ForeignKey("donor_sources.id", ondelete="CASCADE"))
     tg_message_id: Mapped[int] = mapped_column(Integer)
     text: Mapped[str] = mapped_column(Text)
-    media: Mapped[dict] = mapped_column(JSON, default=dict)  # {"type": "photo", "file_ref": ...}
-    content_hash: Mapped[str] = mapped_column(String(64), index=True)  # dedup
+    media: Mapped[dict] = mapped_column(JSON, default=dict)
+    content_hash: Mapped[str] = mapped_column(String(64), index=True)
     posted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    status: Mapped[RawPostStatus] = mapped_column(Enum(RawPostStatus), default=RawPostStatus.new)
+    fanned_out: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
-    donor: Mapped[Donor] = relationship(back_populates="raw_posts")
+    source: Mapped[DonorSource] = relationship(back_populates="raw_posts")
 
 
 class Post(Base):
-    """Generated post in the publishing pipeline."""
+    """Generated post in an org's publishing pipeline."""
 
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
     channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id", ondelete="CASCADE"))
     raw_post_id: Mapped[int | None] = mapped_column(
         ForeignKey("raw_posts.id", ondelete="SET NULL"), nullable=True
@@ -159,12 +273,12 @@ class Post(Base):
     error: Mapped[str] = mapped_column(Text, default="")
     retries: Mapped[int] = mapped_column(Integer, default=0)
 
-    # Anti-plagiarism / cost telemetry
     similarity_to_source: Mapped[float] = mapped_column(Float, default=0.0)
     model: Mapped[str] = mapped_column(String(64), default="")
     input_tokens: Mapped[int] = mapped_column(Integer, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, default=0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    credits_charged: Mapped[int] = mapped_column(Integer, default=0)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -173,12 +287,26 @@ class Post(Base):
 
 
 class WorkerLog(Base):
-    """Operational log shared by all workers (visible in the dashboard)."""
-
     __tablename__ = "worker_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    worker: Mapped[str] = mapped_column(String(32), index=True)   # ingest | generator | publisher
+    org_id: Mapped[int | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    worker: Mapped[str] = mapped_column(String(32), index=True)
     level: Mapped[str] = mapped_column(String(16), default="info")
     message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class Alert(Base):
+    """Actionable notification surfaced in the dashboard."""
+
+    __tablename__ = "alerts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[AlertKind] = mapped_column(Enum(AlertKind))
+    message: Mapped[str] = mapped_column(Text)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

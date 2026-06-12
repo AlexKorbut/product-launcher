@@ -1,17 +1,36 @@
 """Pydantic request/response schemas."""
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+
+# --- Auth ---
+
+class SignupRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6)
+    org_name: str = "Моя организация"
+    referral_code: str | None = None
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class MeResponse(BaseModel):
+    user_id: int
+    email: str
+    org_id: int
+    org_name: str
+    credit_balance: int
+    plan: str
+    referral_code: str
 
 
 # --- Channels ---
@@ -49,14 +68,13 @@ class ChannelOut(ChannelBase):
     id: int
     status: str
     created_at: datetime
-    donor_ids: list[int] = []
+    subscription_ids: list[int] = []
 
 
 # --- Donors ---
 
 class DonorBase(BaseModel):
     username: str
-    title: str = ""
     poll_interval_min: int = Field(15, ge=1, le=1440)
     filters: dict = {}
 
@@ -70,11 +88,14 @@ class DonorUpdate(DonorBase):
     channel_ids: list[int] | None = None
 
 
-class DonorOut(DonorBase):
+class DonorOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    username: str
+    title: str
+    poll_interval_min: int
+    filters: dict
     status: str
-    last_message_id: int
     last_polled_at: datetime | None
     channel_ids: list[int] = []
 
@@ -102,16 +123,40 @@ class PostOut(BaseModel):
     input_tokens: int
     output_tokens: int
     cost_usd: float
+    credits_charged: int
     created_at: datetime
 
 
 class GenerateRequest(BaseModel):
-    """Manual one-off generation: from a raw post or from scratch by topic."""
     channel_id: int
     raw_post_id: int | None = None
 
 
-# --- Dashboard ---
+# --- Billing ---
+
+class CheckoutRequest(BaseModel):
+    price_id: str
+
+
+class CheckoutResponse(BaseModel):
+    url: str
+
+
+class BalanceResponse(BaseModel):
+    credit_balance: int
+
+
+class LedgerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    delta: int
+    balance_after: int
+    kind: str
+    ref: str
+    created_at: datetime
+
+
+# --- Dashboard / alerts ---
 
 class ChannelStats(BaseModel):
     channel_id: int
@@ -128,6 +173,7 @@ class DashboardOut(BaseModel):
     raw_new: int
     total_published: int
     total_cost_usd: float
+    credit_balance: int
 
 
 class LogOut(BaseModel):
@@ -136,4 +182,13 @@ class LogOut(BaseModel):
     worker: str
     level: str
     message: str
+    created_at: datetime
+
+
+class AlertOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    kind: str
+    message: str
+    is_read: bool
     created_at: datetime

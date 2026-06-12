@@ -122,3 +122,40 @@ label { display: block; color: var(--muted); font-size: 12px; margin: 12px 0 4px
 .muted { color: var(--muted); }
 .error { color: var(--red); margin: 10px 0; }
 .post-text { white-space: pre-wrap; font-size: 13px; max-width: 480px; }
+
+/* --- v0.2 components --- */
+.credits-badge {
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; margin: 0 0 12px; text-align: center;
+}
+.credits-badge .num { font-size: 18px; font-weight: 700; color: var(--green); }
+
+.alert-badge {
+  display: block; background: rgba(224,179,60,.12); color: var(--yellow);
+  border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px;
+}
+
+.alerts-panel {
+  background: rgba(224,179,60,.08); border: 1px solid rgba(224,179,60,.3);
+  border-radius: 12px; padding: 14px; margin-bottom: 20px;
+}
+.alert-row { color: var(--yellow); font-size: 13px; margin-top: 6px; }
+
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.cal-day { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px; min-height: 160px; }
+.cal-head { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.cal-post { border-radius: 7px; padding: 6px 7px; margin-bottom: 6px; font-size: 11px; border-left: 3px solid var(--border); background: var(--panel-2); }
+.cal-post.blue { border-left-color: var(--accent); }
+.cal-post.green { border-left-color: var(--green); }
+.cal-post.yellow { border-left-color: var(--yellow); }
+.cal-post.red { border-left-color: var(--red); }
+.cal-time { color: var(--muted); }
+.cal-channel { font-weight: 600; }
+.cal-text { color: var(--muted); margin-top: 2px; }
+
+.stepper { display: flex; gap: 10px; margin: 16px 0 20px; }
+.step {
+  width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); font-weight: 700;
+}
+.step.done { background: var(--accent); color: #fff; border-color: var(--accent); }

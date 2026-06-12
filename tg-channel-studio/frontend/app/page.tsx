@@ -1,28 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, Dashboard, WorkerLog, getToken } from '@/lib/api';
+import { api, Dashboard, WorkerLog, Alert, getToken } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<Dashboard | null>(null);
   const [logs, setLogs] = useState<WorkerLog[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!getToken()) {
-      router.push('/login');
-      return;
-    }
+    if (!getToken()) { router.push('/login'); return; }
     const load = () => {
       api<Dashboard>('/api/dashboard').then(setData).catch((e) => setError(e.message));
       api<WorkerLog[]>('/api/dashboard/logs?limit=30').then(setLogs).catch(() => {});
+      api<Alert[]>('/api/dashboard/alerts').then(setAlerts).catch(() => {});
     };
     load();
     const t = setInterval(load, 15000);
     return () => clearInterval(t);
   }, [router]);
+
+  async function dismissAlerts() {
+    await api('/api/dashboard/alerts/read', { method: 'POST' });
+    setAlerts([]);
+  }
 
   if (error) return <div className="error">{error}</div>;
   if (!data) return <div className="muted">Загрузка…</div>;
@@ -30,7 +34,20 @@ export default function DashboardPage() {
   return (
     <div>
       <h1>Дашборд</h1>
+
+      {alerts.length > 0 && (
+        <div className="alerts-panel">
+          <div className="row">
+            <strong>⚠️ Уведомления</strong>
+            <div className="spacer" />
+            <button className="secondary" onClick={dismissAlerts}>Прочитано</button>
+          </div>
+          {alerts.map((a) => <div key={a.id} className="alert-row">{a.message}</div>)}
+        </div>
+      )}
+
       <div className="cards">
+        <div className="card"><div className="num">{data.credit_balance}</div><div className="label">кредитов на балансе</div></div>
         <div className="card"><div className="num">{data.raw_new}</div><div className="label">сырых постов в обработке</div></div>
         <div className="card"><div className="num">{data.total_published}</div><div className="label">опубликовано всего</div></div>
         <div className="card"><div className="num">${data.total_cost_usd.toFixed(2)}</div><div className="label">затраты на генерацию</div></div>
@@ -53,7 +70,7 @@ export default function DashboardPage() {
             </tr>
           ))}
           {data.channels.length === 0 && (
-            <tr><td colSpan={6} className="muted">Каналов пока нет — добавь первый на вкладке «Каналы»</td></tr>
+            <tr><td colSpan={6} className="muted">Каналов пока нет — <a href="/onboarding">пройди настройку</a></td></tr>
           )}
         </tbody>
       </table>

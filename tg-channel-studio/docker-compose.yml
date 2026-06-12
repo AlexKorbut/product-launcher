@@ -13,11 +13,18 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
   backend:
     build: ./backend
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - media:/srv/media
     depends_on:
       db:
         condition: service_healthy
@@ -33,6 +40,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
     volumes:
       - telethon:/srv/session
+      - media:/srv/media
     working_dir: /srv/session
     depends_on:
       backend:
@@ -56,6 +64,8 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://studio:${POSTGRES_PASSWORD:-studio}@db:5432/studio
+    volumes:
+      - media:/srv/media
     depends_on:
       backend:
         condition: service_started
@@ -71,6 +81,16 @@ services:
       - backend
     restart: unless-stopped
 
+  marketing:
+    build: ./marketing
+    environment:
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost:3001}
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-http://localhost:3000}
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
 volumes:
   pgdata:
   telethon:
+  media:

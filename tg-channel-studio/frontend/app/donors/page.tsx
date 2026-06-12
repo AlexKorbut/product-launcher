@@ -33,7 +33,7 @@ export default function DonorsPage() {
         exclude_keywords: ((f.exclude_keywords as string[]) || []).join(', '),
       });
     } else {
-      setEditing({ username: '', title: '', poll_interval_min: 15, channel_ids: [], min_length: 100, skip_ads: true, include_keywords: '', exclude_keywords: '' });
+      setEditing({ username: '', poll_interval_min: 15, channel_ids: [], min_length: 100, skip_ads: true, include_keywords: '', exclude_keywords: '' });
     }
   }
 
@@ -41,7 +41,6 @@ export default function DonorsPage() {
     if (!editing) return;
     const body = {
       username: editing.username,
-      title: editing.title || '',
       poll_interval_min: editing.poll_interval_min || 15,
       channel_ids: editing.channel_ids || [],
       filters: {

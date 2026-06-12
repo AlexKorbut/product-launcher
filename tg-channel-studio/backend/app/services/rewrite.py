@@ -6,6 +6,7 @@ import anthropic
 
 from app.config import get_settings
 from app.models import Channel
+from app.services.credits import cost_to_credits
 
 REWRITE_MODES = {
     1: (
@@ -48,6 +49,10 @@ class GenerationResult:
     output_tokens: int
     cost_usd: float
     similarity_to_source: float
+
+    @property
+    def credits(self) -> int:
+        return cost_to_credits(self.cost_usd)
 
 
 def _client() -> anthropic.AsyncAnthropic:
