@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "morning-paper"
+version = "0.1.0"
+description = "Personalized printable newspaper generator"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "anthropic>=0.40",
+    "feedparser>=6.0",
+    "httpx>=0.27",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+db = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1", "pgvector>=0.2", "alembic>=1.13"]
+telegram = ["telethon>=1.36"]
+bot = ["aiogram>=3.7"]
+dev = ["pytest>=8.0", "tomli>=2.0; python_version < '3.11'"]
+
+[project.scripts]
+morning-paper = "morning_paper.cli:app"
+
+# Third-party interest-source plugins register under this entry-point group.
+[project.entry-points."morning_paper.sources"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

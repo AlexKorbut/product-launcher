@@ -1,0 +1,29 @@
+# Topic taxonomy shared by the tagger (profile/tagger.py) and ranking.
+# Paths are "domain/subtopic". Keep stable — weights in the profile key off these.
+
+topics = [
+  "world/geopolitics",
+  "world/conflict",
+  "world/europe",
+  "world/americas",
+  "world/asia",
+  "tech/ai",
+  "tech/software",
+  "tech/hardware",
+  "tech/startups",
+  "business/markets",
+  "business/economy",
+  "business/companies",
+  "science/research",
+  "science/space",
+  "science/climate",
+  "culture/arts",
+  "culture/film",
+  "culture/books",
+  "sport/football",
+  "sport/cycling",
+  "sport/other",
+  "lifestyle/health",
+  "lifestyle/travel",
+  "lifestyle/food",
+]

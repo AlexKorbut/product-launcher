@@ -1,0 +1,23 @@
+# Non-secret configuration. Secrets come from env (.env). See config.py.
+
+[defaults]
+output_lang = "ru"        # newspaper language; sources stay multilingual
+theme = "times-classic"
+page_format = "a4"
+
+[models]
+tagging = "claude-haiku-4-5"
+summarize = "claude-sonnet-4-6"
+editorial = "claude-opus-4-8"
+
+[llm]
+use_batch = true          # Batch API (-50%) for the nightly run
+use_prompt_cache = true   # cache stable system-prompt prefixes (-90% on cache reads)
+
+[embeddings]
+provider = "voyage"
+model = "voyage-3.5"      # multilingual
+
+[retrieval]
+max_candidates = 300
+final_stories = 30

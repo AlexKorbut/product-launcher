@@ -1,0 +1,51 @@
+schema_version = 1
+id            = "mono-minimal"
+display_name  = "Mono — Minimal Typographic"
+mood          = "stark black-and-white, typography-only, no photos"
+
+[format]
+page        = "a4"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "bw"
+
+[grid]
+columns       = 3
+rule_weight   = "1px"
+gutter        = "18px"
+section_order = ["tech", "world", "business", "culture"]
+max_lead      = 1
+
+[type]
+masthead_font = "Space Mono"
+headline_font = "Space Grotesk"
+body_font     = "IBM Plex Sans"
+scale         = "minimal"
+hyphenate     = false
+
+[colors]
+paper  = "#ffffff"
+ink    = "#000000"
+accent = "#000000"
+
+[photo]
+treatment    = "none"
+max_width_px = 1200
+
+[[fonts]]
+family  = "Space Mono"
+files   = ["fonts/SpaceMono-Bold.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "Space Grotesk"
+files   = ["fonts/SpaceGrotesk-Bold.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "IBM Plex Sans"
+files   = ["fonts/IBMPlexSans-Regular.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

@@ -1,0 +1,46 @@
+schema_version = 1
+id            = "nyt-modern"
+display_name  = "NYT — Modern Quality"
+mood          = "airy, large serif display, premium"
+
+[format]
+page        = "a4"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "color"
+
+[grid]
+columns       = 5
+rule_weight   = "1px"
+gutter        = "16px"
+section_order = ["world", "culture", "tech", "business"]
+max_lead      = 1
+
+[type]
+masthead_font = "Playfair Display"
+headline_font = "Playfair Display"
+body_font     = "PT Serif"
+scale         = "airy"
+hyphenate     = true
+
+[colors]
+paper  = "#ffffff"
+ink    = "#121212"
+accent = "#326891"
+
+[photo]
+treatment    = "color"
+max_width_px = 1800
+
+[[fonts]]
+family  = "Playfair Display"
+files   = ["fonts/PlayfairDisplay-Bold.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "PT Serif"
+files   = ["fonts/PTSerif-Regular.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

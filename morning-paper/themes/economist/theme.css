@@ -1,0 +1,41 @@
+/* economist: red masthead bar, sans headlines over serif body, boxed feel. */
+
+:root[data-theme="economist"] {
+  --masthead-font: "Archivo";
+  --headline-font: "Archivo";
+  --body-font: "Source Serif 4";
+}
+
+body[data-theme="economist"] {
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+[data-theme="economist"] .masthead {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 4mm 0 3mm;
+}
+[data-theme="economist"] .masthead__title,
+[data-theme="economist"] .masthead__logo {
+  font-family: "Archivo", "Helvetica Neue", sans-serif;
+  font-weight: 800;
+  font-size: 40pt;
+  color: #fff;
+}
+[data-theme="economist"] .masthead__meta { color: #fff; }
+
+[data-theme="economist"] .section__title {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+[data-theme="economist"] .story__headline {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+}
+/* Drop caps feel wrong in this sober style. */
+[data-theme="economist"] .story__body p:first-of-type::first-letter {
+  font-size: 1em;
+  float: none;
+  padding: 0;
+}

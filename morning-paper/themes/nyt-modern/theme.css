@@ -1,0 +1,31 @@
+/* nyt-modern: generous whitespace, big serif display, one large lead photo. */
+
+:root[data-theme="nyt-modern"] {
+  --masthead-font: "Playfair Display";
+  --headline-font: "Playfair Display";
+  --body-font: "PT Serif";
+}
+
+body[data-theme="nyt-modern"] {
+  font-family: "PT Serif", Georgia, serif;
+  font-size: 11pt;
+  line-height: 1.45;
+}
+
+[data-theme="nyt-modern"] .masthead {
+  border-bottom: 1px solid var(--ink);
+  padding: 8mm 0 4mm;
+}
+[data-theme="nyt-modern"] .masthead__title,
+[data-theme="nyt-modern"] .masthead__logo {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 800;
+  font-size: 52pt;
+}
+[data-theme="nyt-modern"] .lead .story__headline { font-size: 34pt; font-weight: 800; }
+[data-theme="nyt-modern"] .lead .story__body { column-count: 2; }
+[data-theme="nyt-modern"] .section__title {
+  color: var(--accent);
+  letter-spacing: 3px;
+}
+[data-theme="nyt-modern"] .story__headline { font-weight: 800; }

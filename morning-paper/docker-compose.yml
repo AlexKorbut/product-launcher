@@ -1,0 +1,37 @@
+# Local-first dev dependencies. `docker compose up -d` then point MP_DB_URL at it.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: morning
+      POSTGRES_PASSWORD: morning
+      POSTGRES_DB: morning_paper
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Optional — only needed once the pipeline moves to Celery workers.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    profiles: ["workers"]
+
+  # Optional — S3-compatible object store if you don't want the local-dir backend.
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: morning
+      MINIO_ROOT_PASSWORD: morningminio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    profiles: ["s3"]
+
+volumes:
+  pgdata:
+  miniodata:
