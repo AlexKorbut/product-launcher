@@ -66,13 +66,21 @@ def sample_grid_plan(*, page_format: str, columns: int, section_order: list[str]
     return GridPlan(page_format=page_format, section_order=section_order, slots=slots)
 
 
+_DEFAULT_SECTION_ORDER = ["world", "business", "tech", "culture"]
+
+
 def sample_render_document(theme_id: str, *, locale: str = "ru"):
-    """Build a complete RenderDocument for a theme using sample content."""
+    """Build a complete RenderDocument for a theme using sample content.
+
+    Always uses the generic English section_order so the sample GridSlots
+    (which reference "world", "business", "tech", "culture") are consistent
+    across all 8 theme IDs, regardless of the theme's own section_order.
+    """
     manifest = load_manifest(theme_id)
     grid = sample_grid_plan(
         page_format=manifest.format.page,
         columns=manifest.grid.columns,
-        section_order=manifest.grid.section_order,
+        section_order=_DEFAULT_SECTION_ORDER,
     )
     return build_render_document(
         issue_id="proto-0001",

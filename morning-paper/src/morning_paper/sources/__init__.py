@@ -4,7 +4,7 @@ Importing the package self-registers the built-in sources so the registry is
 populated without callers having to import each module.
 """
 
-from . import manual, rss  # noqa: F401  (import side effect: registration)
+from . import manual, rss, telegram, instagram  # noqa: F401  (import side effect: registration)
 from .base import (
     AuthState,
     FetchResult,

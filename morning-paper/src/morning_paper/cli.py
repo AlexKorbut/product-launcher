@@ -68,11 +68,27 @@ def build_profile(user: str = typer.Option(..., help="user id")) -> None:
 
 @app.command("run-issue")
 def run_issue(
-    user: str = typer.Option(..., help="user id"),
-    theme: str = typer.Option("times-classic"),
+    user: str = typer.Option("me", help="User ID"),
+    theme: str = typer.Option("times-classic", "--theme"),
+    lang: str = typer.Option("ru", "--lang"),
+    out: Path = typer.Option(Path(".data"), "--out"),
+    from_stage: int = typer.Option(1, "--from-stage"),
+    until_stage: int = typer.Option(8, "--until-stage"),
+    feeds: list[str] = typer.Option([], "--feed", help="RSS feed URLs to include"),
 ) -> None:
-    """Run the full pipeline (s1..s8) for a user (Phase 1)."""
-    typer.echo(f"[scaffold] run-issue for {user} with theme {theme}")
+    """Run the full issue pipeline (or a slice of it)."""
+    from .pipeline.run import run_issue as _run
+
+    ctx = _run(
+        user,
+        theme_id=theme,
+        output_lang=lang,
+        out_dir=out,
+        from_stage=from_stage,
+        until_stage=until_stage,
+        feed_urls=feeds,
+    )
+    typer.echo(f"Issue {ctx.issue_id} complete. PDF: {ctx.pdf_path or 'n/a'}")
 
 
 @app.command("connect-telegram")

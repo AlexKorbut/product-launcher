@@ -1,0 +1,159 @@
+/* swiss-grotesk: Swiss International Typographic Style / Bauhaus.
+   Pure white, signal red accent, strict grid, zero ornament,
+   completely sans-serif with DM Sans headers and DM Serif Text body. */
+
+:root[data-theme="swiss-grotesk"] {
+  --masthead-font: "DM Sans";
+  --headline-font: "DM Sans";
+  --body-font: "DM Serif Text";
+}
+
+body[data-theme="swiss-grotesk"] {
+  font-family: "DM Serif Text", Georgia, serif;
+  background: #ffffff;
+  color: #1a1a1a;
+  text-align: left;
+}
+
+/* ---- Masthead ----------------------------------------------------------- */
+[data-theme="swiss-grotesk"] .masthead {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  padding: 6mm 0 6mm;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+[data-theme="swiss-grotesk"] .masthead__title,
+[data-theme="swiss-grotesk"] .masthead__logo {
+  font-family: "DM Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 38pt;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: left;
+  padding-left: 0;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+[data-theme="swiss-grotesk"] .masthead__logo svg {
+  max-height: 70px;
+}
+
+[data-theme="swiss-grotesk"] .masthead__meta {
+  font-family: "DM Sans", sans-serif;
+  font-size: 8pt;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  letter-spacing: 0.3px;
+  margin-top: 2mm;
+  justify-content: flex-start;
+}
+
+/* ---- Section title ------------------------------------------------------ */
+[data-theme="swiss-grotesk"] .section__title {
+  font-family: "DM Sans", Helvetica, sans-serif;
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-top: none;
+  letter-spacing: 1px;
+  padding-bottom: 1.5mm;
+  margin: 0 0 3mm;
+  text-align: left;
+}
+
+/* ---- Column rules ------------------------------------------------------- */
+[data-theme="swiss-grotesk"] .section__grid {
+  column-rule: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+[data-theme="swiss-grotesk"] .lead .story__body {
+  column-rule: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+/* ---- Story headline ----------------------------------------------------- */
+[data-theme="swiss-grotesk"] .story__headline {
+  font-family: "DM Sans", Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 16pt;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  color: #1a1a1a;
+  margin-bottom: 1.5mm;
+  text-align: left;
+}
+
+/* Lead headline: heavy DM Sans 800 weight, large */
+[data-theme="swiss-grotesk"] .lead .story__headline {
+  font-size: 32pt;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1.0;
+  font-style: normal;
+}
+
+[data-theme="swiss-grotesk"] .story--brief .story__headline {
+  font-size: 12pt;
+  font-weight: 700;
+}
+
+/* ---- Deck (standfirst) -------------------------------------------------- */
+[data-theme="swiss-grotesk"] .story__deck {
+  font-family: "DM Sans", sans-serif;
+  font-size: 9.5pt;
+  font-weight: 400;
+  color: color-mix(in srgb, #1a1a1a 70%, transparent);
+  text-align: left;
+}
+
+/* ---- NO drop cap: pure Swiss typographic discipline --------------------- */
+[data-theme="swiss-grotesk"] .story__body p:first-of-type::first-letter {
+  font-size: 1em;
+  float: none;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+}
+
+/* ---- Pull quote --------------------------------------------------------- */
+[data-theme="swiss-grotesk"] .story__pull {
+  font-family: "DM Sans", sans-serif;
+  font-size: 11.5pt;
+  font-weight: 500;
+  font-style: normal;
+  border-left: 3px solid var(--accent);
+  border-top: none;
+  border-bottom: none;
+  border-right: none;
+  padding: 1mm 4mm;
+  margin: 3mm 0;
+  color: #1a1a1a;
+  text-align: left;
+}
+
+/* ---- Body text ---------------------------------------------------------- */
+[data-theme="swiss-grotesk"] .story__body p {
+  font-family: "DM Serif Text", Georgia, serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #1a1a1a;
+  text-align: left;
+  margin: 0 0 2mm;
+}
+
+/* ---- Byline ------------------------------------------------------------- */
+[data-theme="swiss-grotesk"] .story__byline {
+  font-family: "DM Sans", sans-serif;
+  font-size: 7.5pt;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: color-mix(in srgb, #1a1a1a 60%, transparent);
+}
