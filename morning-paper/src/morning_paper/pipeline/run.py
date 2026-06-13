@@ -13,14 +13,21 @@ STAGES = [s1_ingest, s2_profile, s3_retrieve, s4_rank, s5_editorial, s6_grid, s7
 def run_issue(
     user_id: str,
     *,
-    theme_id: str = "times-classic",
-    output_lang: str = "ru",
+    theme_id: str | None = None,
+    output_lang: str | None = None,
     out_dir: Path | None = None,
     from_stage: int = 1,
     until_stage: int = 8,
     feed_urls: list[str] = (),
     **kwargs,
 ) -> IssueContext:
+    # Fall back to the user's saved preferences when caller doesn't override.
+    from .. import accounts
+
+    acc = accounts.load(user_id)
+    theme_id = theme_id or acc.theme or "times-classic"
+    output_lang = output_lang or acc.output_lang or "ru"
+
     issue_id = datetime.now(timezone.utc).strftime("%Y%m%d") + "-" + uuid.uuid4().hex[:6]
     work_dir = (out_dir or Path(".data")) / issue_id
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -35,5 +42,19 @@ def run_issue(
 
     for stage_fn in STAGES[from_stage - 1 : until_stage]:
         ctx = stage_fn(ctx, feed_urls=feed_urls, **kwargs)
+
+    # Best-effort issue record (no-op if no DB layer / engine available).
+    try:
+        from ..db.repository import record_issue
+
+        record_issue(
+            ctx.issue_id,
+            user_id,
+            ctx.theme_id,
+            status="rendered" if ctx.pdf_path else "incomplete",
+            pdf_key=str(ctx.pdf_path) if ctx.pdf_path else None,
+        )
+    except Exception:
+        pass
 
     return ctx

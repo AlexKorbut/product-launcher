@@ -1,6 +1,10 @@
 # Fonts for `times-classic`
 
-Drop the following OFL-licensed font files here (filenames must match `theme.toml`):
+Run `python scripts/fetch_fonts.py --theme times-classic` from the
+morning-paper/ directory to fetch these automatically (OFL-1.1), or download
+manually from the Google Fonts links below.
+
+Expected files (filenames must match `theme.toml`):
 
 - `UnifrakturCook-Regular.woff2` — blackletter masthead.
   Source: https://fonts.google.com/specimen/UnifrakturCook (OFL-1.1)

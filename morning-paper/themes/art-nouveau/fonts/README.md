@@ -1,7 +1,16 @@
 # art-nouveau — Font Downloads
 
 All fonts are released under the SIL Open Font License 1.1 (OFL-1.1).
-Download the `.woff2` files and place them in this directory.
+
+Run `python scripts/fetch_fonts.py --theme art-nouveau` from the morning-paper/
+directory to fetch these automatically (OFL-1.1), or download manually from the
+Google Fonts links below.
+
+Expected files (names must match `theme.toml`):
+
+- `CinzelDecorative-Regular.woff2`, `CinzelDecorative-Bold.woff2`
+- `Cinzel-Regular.woff2`, `Cinzel-Bold.woff2`
+- `IMFellEnglish-Regular.woff2`, `IMFellEnglish-Italic.woff2`
 
 ## Cinzel Decorative
 

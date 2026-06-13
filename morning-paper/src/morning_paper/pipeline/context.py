@@ -24,3 +24,4 @@ class IssueContext:
     grid_plan: GridPlan | None = None
     render_document: RenderDocument | None = None
     pdf_path: Path | None = None
+    delivery_location: str | None = None

@@ -51,8 +51,8 @@ class Secrets(BaseSettings):
     voyage_api_key: str | None = None
     mp_db_url: str | None = None
     mp_object_store_url: str = "file://./.data/objects"
-    tg_api_id: str | None = None
-    tg_api_hash: str | None = None
+    telegram_api_id: str | None = None   # used by the Telethon connector (TELEGRAM_API_ID)
+    telegram_api_hash: str | None = None
     newsapi_key: str | None = None
     telegram_bot_token: str | None = None
     resend_api_key: str | None = None

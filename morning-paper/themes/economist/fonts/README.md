@@ -1,6 +1,10 @@
 # Fonts for `economist`
 
-Drop these OFL fonts here (names must match `theme.toml`):
+Run `python scripts/fetch_fonts.py --theme economist` from the morning-paper/
+directory to fetch these automatically (OFL-1.1), or download manually from the
+Google Fonts links below.
+
+Expected files (names must match `theme.toml`):
 
 - `Archivo-Bold.woff2` — masthead + headlines (grotesque sans).
   https://fonts.google.com/specimen/Archivo (OFL-1.1)

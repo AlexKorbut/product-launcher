@@ -1,6 +1,10 @@
 # Fonts for `nyt-modern`
 
-Drop these OFL fonts here (names must match `theme.toml`):
+Run `python scripts/fetch_fonts.py --theme nyt-modern` from the morning-paper/
+directory to fetch these automatically (OFL-1.1), or download manually from the
+Google Fonts links below.
+
+Expected files (names must match `theme.toml`):
 
 - `PlayfairDisplay-Bold.woff2` — masthead + display headlines.
   https://fonts.google.com/specimen/Playfair+Display (OFL-1.1)

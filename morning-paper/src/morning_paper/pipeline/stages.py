@@ -16,27 +16,50 @@ _DEFAULT_FEEDS = [
 
 
 def s1_ingest(ctx: IssueContext, **kwargs) -> IssueContext:
-    """Gather signals from all registered sources for this user."""
-    from ..sources.registry import all_sources
-    from ..sources.base import SourceConfig, AuthState
+    """Gather signals from the user's configured sources (or, for a brand-new
+    user with nothing configured, every auth-free source with empty options)."""
+    from ..sources.registry import get_source
+    from ..sources.base import AuthState, SourceConfig
+    from .. import accounts
 
-    cfg = SourceConfig(source_id="", user_id=ctx.user_id, enabled=True)
-    auth = AuthState(source_id="", user_id=ctx.user_id, status="connected")
+    configured = accounts.enabled_sources(ctx.user_id)
+
+    if not configured:
+        from ..sources.registry import all_sources
+
+        configured = [
+            accounts.SourceAccount(source_id=getattr(cls, "source_id", ""), options={})
+            for cls in all_sources()
+            if not getattr(cls, "requires_auth", False)
+        ]
 
     signals = []
-    for source_cls in all_sources():
-        source = source_cls()
-        source_id = getattr(source_cls, "source_id", "unknown")
-        if getattr(source_cls, "requires_auth", False):
-            continue
-        cfg_for = SourceConfig(source_id=source_id, user_id=ctx.user_id, enabled=True)
-        auth_for = AuthState(source_id=source_id, user_id=ctx.user_id, status="connected")
+    for sa in configured:
+        source_id = sa.source_id
         try:
-            result = source.fetch(cfg_for, auth_for, cursor=None)
+            source = get_source(source_id)
+        except KeyError:
+            logger.warning("unknown source %s in accounts; skipping", source_id)
+            continue
+        cfg = SourceConfig(
+            source_id=source_id, user_id=ctx.user_id, enabled=True, options=sa.options
+        )
+        auth = AuthState(
+            source_id=source_id,
+            user_id=ctx.user_id,
+            status="connected",
+            secret_ref=sa.secret_ref,
+        )
+        try:
+            result = source.fetch(cfg, auth, cursor=sa.cursor)
             signals.extend(result.signals)
-            if result.warnings:
-                for w in result.warnings:
-                    logger.warning("source %s: %s", source_id, w)
+            for w in result.warnings:
+                logger.warning("source %s: %s", source_id, w)
+            if result.cursor != sa.cursor:
+                try:
+                    accounts.update_cursor(ctx.user_id, source_id, result.cursor)
+                except Exception:
+                    pass
         except Exception as exc:
             logger.warning("source %s fetch failed: %s", source_id, exc)
 
@@ -198,12 +221,31 @@ def s7_render(ctx: IssueContext, **kwargs) -> IssueContext:
     return ctx
 
 
-def s8_deliver(ctx: IssueContext, **kwargs) -> IssueContext:
-    """Deliver PDF (currently: print path to stdout)."""
-    if ctx.pdf_path:
-        print(str(ctx.pdf_path))
-    else:
+def s8_deliver(ctx: IssueContext, deliver_channel: str | None = None, **kwargs) -> IssueContext:
+    """Deliver the PDF over the user's chosen channel (default: file outbox)."""
+    if not ctx.pdf_path:
         logger.warning("deliver: no PDF path available")
+        return ctx
+
+    from .. import accounts
+
+    channel = deliver_channel or accounts.load(ctx.user_id).deliver_channel or "file"
+    subject = f"The Morning Paper — {date.today().isoformat()}"
+    try:
+        from ..delivery import get_deliverer
+
+        result = get_deliverer(channel).deliver(
+            ctx.pdf_path, user_id=ctx.user_id, subject=subject
+        )
+        if result.ok:
+            logger.info("delivered via %s -> %s", result.channel, result.location)
+            ctx.delivery_location = result.location
+        else:
+            logger.warning("delivery via %s failed: %s", channel, result.detail)
+    except Exception as exc:
+        logger.warning("deliver failed: %s", exc)
+
+    print(str(ctx.delivery_location or ctx.pdf_path))
     return ctx
 
 

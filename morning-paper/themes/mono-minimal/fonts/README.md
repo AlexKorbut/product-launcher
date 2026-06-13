@@ -1,6 +1,10 @@
 # Fonts for `mono-minimal`
 
-Drop these OFL fonts here (names must match `theme.toml`):
+Run `python scripts/fetch_fonts.py --theme mono-minimal` from the morning-paper/
+directory to fetch these automatically (OFL-1.1), or download manually from the
+Google Fonts links below.
+
+Expected files (names must match `theme.toml`):
 
 - `SpaceMono-Bold.woff2` — masthead. https://fonts.google.com/specimen/Space+Mono (OFL-1.1)
 - `SpaceGrotesk-Bold.woff2` — headlines. https://fonts.google.com/specimen/Space+Grotesk (OFL-1.1)

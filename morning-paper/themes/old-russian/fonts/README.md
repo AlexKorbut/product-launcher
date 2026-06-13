@@ -1,7 +1,16 @@
 # old-russian — Font Downloads
 
 All fonts are released under the SIL Open Font License 1.1 (OFL-1.1).
-Download the `.woff2` files and place them in this directory.
+
+Run `python scripts/fetch_fonts.py --theme old-russian` from the morning-paper/
+directory to fetch these automatically (OFL-1.1), or download manually from the
+Google Fonts links below. Both families are fetched with the `cyrillic` subset.
+
+Expected files (names must match `theme.toml`):
+
+- `CormorantGaramond-Regular.woff2`, `CormorantGaramond-Bold.woff2`,
+  `CormorantGaramond-Italic.woff2`, `CormorantGaramond-BoldItalic.woff2`
+- `Vollkorn-Regular.woff2`, `Vollkorn-Bold.woff2`, `Vollkorn-Italic.woff2`
 
 ## Cormorant Garamond
 
