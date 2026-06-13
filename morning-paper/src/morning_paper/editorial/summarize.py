@@ -55,6 +55,8 @@ def summarize_batch(
     output_lang: str = "ru",
     client: AnthropicClient | None = None,
     use_batch_api: bool = True,
+    usage_sink=None,
+    usage_ctx: dict | None = None,
 ) -> list[SummarizedStory]:
     """Summarize candidates into newspaper-register stories. Uses BatchProcessor if use_batch_api."""
     if not candidates:
@@ -66,7 +68,13 @@ def summarize_batch(
     system = _system_prompt(output_lang)
 
     if use_batch_api and len(candidates) > 3:
-        return _summarize_via_batch(candidates, system=system, output_lang=output_lang)
+        return _summarize_via_batch(
+            candidates,
+            system=system,
+            output_lang=output_lang,
+            usage_sink=usage_sink,
+            usage_ctx=usage_ctx,
+        )
 
     stories: list[SummarizedStory] = []
     for candidate in candidates:
@@ -114,6 +122,8 @@ def _summarize_via_batch(
     *,
     system: str,
     output_lang: str,
+    usage_sink=None,
+    usage_ctx: dict | None = None,
 ) -> list[SummarizedStory]:
     from ..llm.batch import BatchProcessor
 
@@ -143,7 +153,7 @@ def _summarize_via_batch(
         )
 
     try:
-        results = processor.run(requests)
+        results = processor.run(requests, usage_sink=usage_sink, usage_ctx=usage_ctx)
     except Exception as exc:
         logger.warning("batch summarize failed, falling back to sequential: %s", exc)
         results = {}

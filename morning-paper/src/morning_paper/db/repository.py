@@ -254,3 +254,96 @@ def record_issue(
             row.status = status
             row.pdf_key = pdf_key
         s.commit()
+
+
+def record_usage(
+    *,
+    user_id: str,
+    issue_id: str | None,
+    stage: str,
+    model: str,
+    tokens_in: int,
+    tokens_out: int,
+    cached_in: int = 0,
+    batch: bool = False,
+    cost_usd: float,
+    url=None,
+    engine=None,
+) -> None:
+    """Insert one usage event row."""
+    from .engine import get_session
+    from .schema import UsageEventRow
+
+    with get_session(engine=_engine(url, engine)) as s:
+        s.add(
+            UsageEventRow(
+                user_id=user_id,
+                issue_id=issue_id,
+                stage=stage,
+                model=model,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                cached_in=cached_in,
+                batch=batch,
+                cost_usd=cost_usd,
+            )
+        )
+        s.commit()
+
+
+def issue_cost(issue_id: str, *, url=None, engine=None) -> dict:
+    """Sum cost/tokens for one issue, plus a per-(stage,model) breakdown."""
+    from sqlalchemy import select
+
+    from .engine import get_session
+    from .schema import UsageEventRow
+
+    with get_session(engine=_engine(url, engine)) as s:
+        rows = s.scalars(
+            select(UsageEventRow).where(UsageEventRow.issue_id == issue_id)
+        ).all()
+
+    cost = sum(r.cost_usd or 0.0 for r in rows)
+    tin = sum(r.tokens_in or 0 for r in rows)
+    tout = sum(r.tokens_out or 0 for r in rows)
+    agg: dict[tuple[str, str], dict] = {}
+    for r in rows:
+        key = (r.stage, r.model)
+        e = agg.setdefault(
+            key,
+            {"stage": r.stage, "model": r.model, "cost_usd": 0.0, "tokens_in": 0, "tokens_out": 0},
+        )
+        e["cost_usd"] += r.cost_usd or 0.0
+        e["tokens_in"] += r.tokens_in or 0
+        e["tokens_out"] += r.tokens_out or 0
+    return {
+        "cost_usd": cost,
+        "tokens_in": tin,
+        "tokens_out": tout,
+        "events": list(agg.values()),
+    }
+
+
+def user_usage(user_id: str, *, since=None, url=None, engine=None) -> dict:
+    """Aggregate cost/tokens for a user (optionally created_at >= since)."""
+    from sqlalchemy import select
+
+    from .engine import get_session
+    from .schema import UsageEventRow
+
+    with get_session(engine=_engine(url, engine)) as s:
+        stmt = select(UsageEventRow).where(UsageEventRow.user_id == user_id)
+        if since is not None:
+            stmt = stmt.where(UsageEventRow.created_at >= since)
+        rows = s.scalars(stmt).all()
+
+    cost = sum(r.cost_usd or 0.0 for r in rows)
+    tin = sum(r.tokens_in or 0 for r in rows)
+    tout = sum(r.tokens_out or 0 for r in rows)
+    issues = {r.issue_id for r in rows if r.issue_id is not None}
+    return {
+        "cost_usd": cost,
+        "tokens_in": tin,
+        "tokens_out": tout,
+        "issues": len(issues),
+    }

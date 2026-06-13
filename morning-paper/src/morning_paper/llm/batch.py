@@ -20,6 +20,8 @@ class BatchProcessor:
         *,
         poll_interval_s: float = 5.0,
         timeout_s: float = 600.0,
+        usage_ctx: dict | None = None,
+        usage_sink=None,
     ) -> dict[str, str]:
         """Submit batch, poll until done, return {custom_id: text_response}."""
         batch_requests: list[BatchRequest] = [
@@ -52,9 +54,41 @@ class BatchProcessor:
                         if hasattr(block, "text"):
                             results[custom_id] = block.text
                             break
+                    if usage_sink is not None and usage_ctx is not None:
+                        self._record_usage(result.message, usage_ctx, usage_sink)
                 else:
                     logger.warning("batch item %s failed: %s", custom_id, result.type)
             except Exception as exc:
                 logger.warning("batch item %s error: %s", custom_id, exc)
 
         return results
+
+    @staticmethod
+    def _record_usage(message, usage_ctx: dict, usage_sink) -> None:
+        """Best-effort metering for one succeeded batch item; never raises."""
+        try:
+            from ..economics import UsageEvent, cost_of
+
+            usage = getattr(message, "usage", None)
+            if usage is None:
+                return
+            tin = getattr(usage, "input_tokens", 0) or 0
+            tout = getattr(usage, "output_tokens", 0) or 0
+            cin = getattr(usage, "cache_read_input_tokens", 0) or 0
+            model = getattr(message, "model", "") or ""
+            cost = cost_of(model, tin, tout, cached_in=cin, batch=True)
+            usage_sink.record(
+                UsageEvent(
+                    usage_ctx["user_id"],
+                    usage_ctx.get("issue_id"),
+                    usage_ctx.get("stage", "editorial"),
+                    model,
+                    tin,
+                    tout,
+                    cin,
+                    True,
+                    cost,
+                )
+            )
+        except Exception:
+            pass

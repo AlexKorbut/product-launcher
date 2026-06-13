@@ -72,10 +72,20 @@ def s2_profile(ctx: IssueContext, **kwargs) -> IssueContext:
     from ..profile.builder import build_profile
 
     try:
+        client = None
+        try:
+            from ..metering import metered_client
+
+            client = metered_client(
+                ctx.user_id, ctx.issue_id, "profile", sink=ctx.usage_sink
+            )
+        except Exception as exc:
+            logger.warning("metered client unavailable for profile: %s", exc)
         ctx.profile = build_profile(
             ctx.user_id,
             ctx.signals,
             output_lang=ctx.output_lang,
+            client=client,
         )
     except Exception as exc:
         logger.warning("profile build failed: %s", exc)
@@ -123,9 +133,29 @@ def s5_editorial(ctx: IssueContext, **kwargs) -> IssueContext:
     from ..editorial.summarize import summarize_batch
 
     try:
+        client = None
+        usage_sink = None
+        usage_ctx = None
+        try:
+            from ..metering import default_sink, metered_client
+
+            client = metered_client(
+                ctx.user_id, ctx.issue_id, "editorial", sink=ctx.usage_sink
+            )
+            usage_sink = ctx.usage_sink if ctx.usage_sink is not None else default_sink()
+            usage_ctx = {
+                "user_id": ctx.user_id,
+                "issue_id": ctx.issue_id,
+                "stage": "editorial",
+            }
+        except Exception as exc:
+            logger.warning("metered client unavailable for editorial: %s", exc)
         ctx.stories = summarize_batch(
             ctx.ranked[:20],
             output_lang=ctx.output_lang,
+            client=client,
+            usage_sink=usage_sink,
+            usage_ctx=usage_ctx,
         )
     except Exception as exc:
         logger.warning("editorial summarize failed: %s", exc)

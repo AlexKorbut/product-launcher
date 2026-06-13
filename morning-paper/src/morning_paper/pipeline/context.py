@@ -25,3 +25,4 @@ class IssueContext:
     render_document: RenderDocument | None = None
     pdf_path: Path | None = None
     delivery_location: str | None = None
+    usage_sink: object | None = None

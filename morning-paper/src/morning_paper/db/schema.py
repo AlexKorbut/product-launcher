@@ -115,10 +115,26 @@ if _SA:
         pdf_key: Mapped[str | None] = mapped_column(String, nullable=True)
         created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
+    class UsageEventRow(Base):
+        __tablename__ = "usage_events"
+
+        id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+        user_id: Mapped[str] = mapped_column(String(128), index=True)
+        issue_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+        stage: Mapped[str] = mapped_column(String(32))
+        model: Mapped[str] = mapped_column(String(64))
+        tokens_in: Mapped[int] = mapped_column(Integer, default=0)
+        tokens_out: Mapped[int] = mapped_column(Integer, default=0)
+        cached_in: Mapped[int] = mapped_column(Integer, default=0)
+        batch: Mapped[bool] = mapped_column(Boolean, default=False)
+        cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+        created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
 else:  # sqlalchemy not installed
     Base = None  # type: ignore[assignment]
     User = SourceAccount = SignalRow = None  # type: ignore[assignment]
     InterestProfileRow = InterestVectorRow = IssueRow = None  # type: ignore[assignment]
+    UsageEventRow = None  # type: ignore[assignment]
 
 
 def require_sqlalchemy() -> None:

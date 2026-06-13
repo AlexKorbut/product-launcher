@@ -9,6 +9,11 @@ class AnthropicClient:
     def __init__(self, api_key: str | None = None) -> None:
         self._client = Anthropic(api_key=api_key)
 
+    def _create(self, **kwargs):
+        """Single chokepoint for the SDK call. Subclasses (see metering.MeteredClient)
+        override this to observe response.usage without touching public behavior."""
+        return self._client.messages.create(**kwargs)
+
     def _normalize_system(self, system: str | list[dict] | None) -> list[dict] | None:
         if system is None:
             return None
@@ -40,7 +45,7 @@ class AnthropicClient:
             kwargs["temperature"] = 1.0
         else:
             kwargs["temperature"] = temperature
-        response = self._client.messages.create(**kwargs)
+        response = self._create(**kwargs)
         for block in response.content:
             if hasattr(block, "text"):
                 return block.text
@@ -67,7 +72,7 @@ class AnthropicClient:
         )
         if normalized is not None:
             kwargs["system"] = normalized
-        response = self._client.messages.create(**kwargs)
+        response = self._create(**kwargs)
         for block in response.content:
             if getattr(block, "type", None) == "tool_use":
                 return block.input

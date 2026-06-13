@@ -397,5 +397,89 @@ def schedule(
         sched.start()
 
 
+# --------------------------------------------------------------------------- #
+# Economics / cost accounting
+# --------------------------------------------------------------------------- #
+@app.command("estimate")
+def estimate(
+    signals: int = typer.Option(300, "--signals", help="number of interest signals to tag"),
+    stories: int = typer.Option(30, "--stories", help="number of stories to summarize"),
+) -> None:
+    """Estimate the per-issue Claude cost (pure Python, no API key needed)."""
+    from .economics import estimate_issue_cost
+
+    cost = estimate_issue_cost(n_signals=signals, n_stories=stories)
+    typer.secho(f"estimated issue cost: ${cost:.3f}", fg=typer.colors.GREEN)
+    if not (0.10 <= cost <= 0.50):
+        typer.secho(
+            f"  note: ${cost:.3f} is outside the documented $0.10–0.50 target band",
+            fg=typer.colors.YELLOW,
+        )
+
+
+@app.command("cost")
+def cost(
+    issue: str = typer.Option("", "--issue", help="issue id to report cost for"),
+    user: str = typer.Option("", "--user", help="user id to report total usage for"),
+    since: str = typer.Option("", "--since", help="ISO date lower bound for --user"),
+) -> None:
+    """Report ACTUAL recorded Claude cost for an issue or a user (from usage_events)."""
+    if not issue and not user:
+        typer.secho("provide --issue or --user", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    try:
+        from .db.repository import issue_cost, user_usage
+    except Exception as exc:  # pragma: no cover
+        typer.secho(f"db layer unavailable: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    if issue:
+        rep = issue_cost(issue)
+        typer.secho(
+            f"issue {issue}: ${rep['cost_usd']:.4f}  "
+            f"({rep['tokens_in']} in / {rep['tokens_out']} out tokens)",
+            fg=typer.colors.GREEN,
+        )
+        for ev in rep.get("events", []):
+            typer.echo(
+                f"  {ev['stage']:10} {ev['model']:22} ${ev['cost_usd']:.4f}  "
+                f"{ev['tokens_in']}/{ev['tokens_out']}"
+            )
+        if not (0.10 <= rep["cost_usd"] <= 0.50) and rep["cost_usd"] > 0:
+            typer.secho("  note: outside the $0.10–0.50 target band", fg=typer.colors.YELLOW)
+    if user:
+        from datetime import datetime
+
+        since_dt = datetime.fromisoformat(since) if since else None
+        rep = user_usage(user, since=since_dt)
+        typer.secho(
+            f"user {user}: ${rep['cost_usd']:.4f} over {rep['issues']} issues  "
+            f"({rep['tokens_in']} in / {rep['tokens_out']} out tokens)",
+            fg=typer.colors.GREEN,
+        )
+
+
+# --------------------------------------------------------------------------- #
+# API server
+# --------------------------------------------------------------------------- #
+@app.command("serve")
+def serve(
+    host: str = typer.Option("127.0.0.1", help="bind host"),
+    port: int = typer.Option(8000, help="bind port"),
+    reload: bool = typer.Option(False, "--reload", help="auto-reload (dev)"),
+) -> None:
+    """Run the FastAPI backend (requires the optional `api` extra)."""
+    try:
+        import uvicorn
+    except ImportError:
+        typer.secho(
+            "API deps not installed. Run: pip install -e \".[api]\"",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    uvicorn.run("morning_paper.api.app:app", host=host, port=port, reload=reload)
+
+
 if __name__ == "__main__":
     app()
