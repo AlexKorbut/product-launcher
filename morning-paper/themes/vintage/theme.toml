@@ -1,0 +1,46 @@
+schema_version = 1
+id            = "vintage"
+display_name  = "Vintage — 1920s Broadsheet"
+mood          = "1920s American broadsheet, art deco, condensed type, yellowed paper"
+
+[format]
+page        = "broadsheet"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "bw"
+
+[grid]
+columns       = 5
+rule_weight   = "1px"
+gutter        = "9px"
+section_order = ["world", "business", "society", "sport"]
+max_lead      = 1
+
+[type]
+masthead_font = "Playfair Display SC"
+headline_font = "Playfair Display SC"
+body_font     = "Libre Baskerville"
+scale         = "classic"
+hyphenate     = true
+
+[colors]
+paper  = "#faf3df"
+ink    = "#0a0a08"
+accent = "#0a0a08"
+
+[photo]
+treatment    = "bw"
+max_width_px = 1400
+
+[[fonts]]
+family  = "Playfair Display SC"
+files   = ["fonts/PlayfairDisplaySC-Regular.woff2", "fonts/PlayfairDisplaySC-Bold.woff2", "fonts/PlayfairDisplaySC-Italic.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "Libre Baskerville"
+files   = ["fonts/LibreBaskerville-Regular.woff2", "fonts/LibreBaskerville-Bold.woff2", "fonts/LibreBaskerville-Italic.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

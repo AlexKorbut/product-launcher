@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 120" role="img" aria-label="Утренняя Газета">
+  <!-- Ornamental top rule: diamond repeat pattern -->
+  <g fill="#2a1a0a">
+    <!-- Top double rule lines -->
+    <rect x="0" y="4" width="800" height="2.5"/>
+    <rect x="0" y="10" width="800" height="1"/>
+    <!-- Diamond ornaments along top rule -->
+    <polygon points="60,7 65,3 70,7 65,11" fill="#7a3b1e"/>
+    <polygon points="130,7 135,3 140,7 135,11" fill="#7a3b1e"/>
+    <polygon points="200,7 205,3 210,7 205,11" fill="#7a3b1e"/>
+    <polygon points="270,7 275,3 280,7 275,11" fill="#7a3b1e"/>
+    <polygon points="340,7 345,3 350,7 345,11" fill="#7a3b1e"/>
+    <polygon points="400,7 405,3 410,7 405,11" fill="#7a3b1e"/>
+    <polygon points="460,7 465,3 470,7 465,11" fill="#7a3b1e"/>
+    <polygon points="530,7 535,3 540,7 535,11" fill="#7a3b1e"/>
+    <polygon points="600,7 605,3 610,7 605,11" fill="#7a3b1e"/>
+    <polygon points="670,7 675,3 680,7 675,11" fill="#7a3b1e"/>
+    <polygon points="740,7 745,3 750,7 745,11" fill="#7a3b1e"/>
+  </g>
+
+  <!-- Central ornamental flourish above title -->
+  <g transform="translate(400,26)" fill="#7a3b1e">
+    <!-- Symmetrical fleur-de-lis style ornament -->
+    <path d="M0,-6 C-3,-4 -6,-1 -6,2 C-6,5 -3,7 0,7 C3,7 6,5 6,2 C6,-1 3,-4 0,-6 Z" fill="#7a3b1e" opacity="0.7"/>
+    <rect x="-30" y="0" width="22" height="1" fill="#7a3b1e"/>
+    <rect x="8" y="0" width="22" height="1" fill="#7a3b1e"/>
+    <polygon points="-32,0.5 -38,-2 -38,3" fill="#7a3b1e"/>
+    <polygon points="32,0.5 38,-2 38,3" fill="#7a3b1e"/>
+  </g>
+
+  <!-- Main title: Утренняя Газета in Cormorant Garamond -->
+  <text x="400" y="88"
+        text-anchor="middle"
+        font-family="'Cormorant Garamond', Garamond, 'Times New Roman', serif"
+        font-size="72"
+        font-weight="700"
+        fill="#2a1a0a"
+        letter-spacing="2">Утренняя Газета</text>
+
+  <!-- Ornamental bottom rule: double line -->
+  <g fill="#2a1a0a">
+    <rect x="0" y="108" width="800" height="1"/>
+    <rect x="0" y="113" width="800" height="2.5"/>
+    <!-- Diamond ornaments along bottom rule -->
+    <polygon points="60,110.5 65,106.5 70,110.5 65,114.5" fill="#7a3b1e"/>
+    <polygon points="130,110.5 135,106.5 140,110.5 135,114.5" fill="#7a3b1e"/>
+    <polygon points="200,110.5 205,106.5 210,110.5 205,114.5" fill="#7a3b1e"/>
+    <polygon points="270,110.5 275,106.5 280,110.5 275,114.5" fill="#7a3b1e"/>
+    <polygon points="340,110.5 345,106.5 350,110.5 345,114.5" fill="#7a3b1e"/>
+    <polygon points="400,110.5 405,106.5 410,110.5 405,114.5" fill="#7a3b1e"/>
+    <polygon points="460,110.5 465,106.5 470,110.5 465,114.5" fill="#7a3b1e"/>
+    <polygon points="530,110.5 535,106.5 540,110.5 535,114.5" fill="#7a3b1e"/>
+    <polygon points="600,110.5 605,106.5 610,110.5 605,114.5" fill="#7a3b1e"/>
+    <polygon points="670,110.5 675,106.5 680,110.5 675,114.5" fill="#7a3b1e"/>
+    <polygon points="740,110.5 745,106.5 750,110.5 745,114.5" fill="#7a3b1e"/>
+  </g>
+</svg>

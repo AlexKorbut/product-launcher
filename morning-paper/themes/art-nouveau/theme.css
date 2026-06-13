@@ -1,0 +1,184 @@
+/* art-nouveau: Belle Époque / Art Nouveau aesthetic.
+   Warm cream paper, forest green ink, ornate decorative elements,
+   generous spacing, early-1900s Parisian elegance. */
+
+:root[data-theme="art-nouveau"] {
+  --masthead-font: "Cinzel Decorative";
+  --headline-font: "Cinzel";
+  --body-font: "IM Fell English";
+}
+
+body[data-theme="art-nouveau"] {
+  font-family: "IM Fell English", Georgia, "Times New Roman", serif;
+  background: #f5edd0;
+  color: #1a2c1a;
+}
+
+/* ---- Page background warmth --------------------------------------------- */
+[data-theme="art-nouveau"] main.paper {
+  background: #f5edd0;
+}
+
+/* ---- Masthead ----------------------------------------------------------- */
+[data-theme="art-nouveau"] .masthead {
+  background: color-mix(in srgb, #f5edd0 85%, #1a2c1a 5%);
+  border-top: none;
+  border-bottom: none;
+  padding: 8mm 0 6mm;
+  margin-bottom: 5mm;
+  text-align: center;
+  position: relative;
+}
+
+/* Subtle warm horizontal rules flanking the masthead area */
+[data-theme="art-nouveau"] .masthead::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: color-mix(in srgb, #1a2c1a 40%, transparent);
+}
+
+[data-theme="art-nouveau"] .masthead::after {
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: color-mix(in srgb, #1a2c1a 40%, transparent);
+}
+
+[data-theme="art-nouveau"] .masthead__title,
+[data-theme="art-nouveau"] .masthead__logo {
+  font-family: "Cinzel Decorative", "Cinzel", Garamond, serif;
+  font-size: 42pt;
+  font-weight: 700;
+  color: #1a2c1a;
+  letter-spacing: 3px;
+  text-align: center;
+}
+
+[data-theme="art-nouveau"] .masthead__logo svg {
+  max-height: 100px;
+}
+
+[data-theme="art-nouveau"] .masthead__meta {
+  justify-content: center;
+  font-family: "Cinzel", serif;
+  font-size: 8pt;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #1a2c1a 70%, transparent);
+  margin-top: 3mm;
+}
+
+/* ---- Section title ------------------------------------------------------ */
+[data-theme="art-nouveau"] .section__title {
+  font-family: "Cinzel", serif;
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+  color: #1a2c1a;
+  border-bottom: 0.5px solid color-mix(in srgb, #1a2c1a 50%, transparent);
+  padding-bottom: 2mm;
+  margin: 0 0 4mm;
+}
+
+[data-theme="art-nouveau"] .section__title::before {
+  content: " ✦ ";
+  color: var(--accent);
+}
+
+[data-theme="art-nouveau"] .section__title::after {
+  content: " ✦ ";
+  color: var(--accent);
+}
+
+/* ---- Column rules ------------------------------------------------------- */
+[data-theme="art-nouveau"] .section__grid {
+  column-rule: 0.5px solid color-mix(in srgb, #1a2c1a 20%, transparent);
+}
+
+[data-theme="art-nouveau"] .lead .story__body {
+  column-rule: 0.5px solid color-mix(in srgb, #1a2c1a 20%, transparent);
+}
+
+/* ---- Story headline ----------------------------------------------------- */
+[data-theme="art-nouveau"] .story__headline {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 14pt;
+  color: #1a2c1a;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  margin-bottom: 2mm;
+  text-align: left;
+}
+
+[data-theme="art-nouveau"] .lead .story__headline {
+  font-size: 26pt;
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+
+[data-theme="art-nouveau"] .story--brief .story__headline {
+  font-size: 11pt;
+}
+
+/* ---- Deck (standfirst) -------------------------------------------------- */
+[data-theme="art-nouveau"] .story__deck {
+  font-family: "IM Fell English", serif;
+  font-style: italic;
+  font-size: 10.5pt;
+  color: color-mix(in srgb, #1a2c1a 85%, #8b5e3c 10%);
+}
+
+/* ---- Drop cap ----------------------------------------------------------- */
+[data-theme="art-nouveau"] .story__body p:first-of-type::first-letter {
+  font-family: "Cinzel Decorative", "Cinzel", serif;
+  font-size: 3.5em;
+  line-height: 0.78;
+  float: left;
+  padding-right: 4px;
+  color: var(--accent);
+}
+
+/* ---- Pull quote --------------------------------------------------------- */
+[data-theme="art-nouveau"] .story__pull {
+  font-family: "IM Fell English", serif;
+  font-size: 12.5pt;
+  font-style: italic;
+  border-left: 3px solid var(--accent);
+  border-top: none;
+  border-bottom: none;
+  border-right: none;
+  padding: 2mm 4mm;
+  margin: 3mm 0;
+  color: #1a2c1a;
+}
+
+/* ---- Body text ---------------------------------------------------------- */
+[data-theme="art-nouveau"] .story__body p {
+  font-family: "IM Fell English", Georgia, serif;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  color: #1a2c1a;
+  text-align: justify;
+  margin: 0 0 2.5mm;
+}
+
+/* ---- Byline ------------------------------------------------------------- */
+[data-theme="art-nouveau"] .story__byline {
+  font-family: "Cinzel", serif;
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: color-mix(in srgb, #1a2c1a 70%, #8b5e3c 15%);
+}

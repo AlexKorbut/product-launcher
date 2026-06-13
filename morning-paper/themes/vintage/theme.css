@@ -1,0 +1,171 @@
+/* vintage: 1920s American broadsheet aesthetic.
+   Dense, slightly yellowed paper, condensed display type,
+   Art Deco-influenced rules, authentic period broadsheet feel. */
+
+:root[data-theme="vintage"] {
+  --masthead-font: "Playfair Display SC";
+  --headline-font: "Playfair Display SC";
+  --body-font: "Libre Baskerville";
+}
+
+body[data-theme="vintage"] {
+  font-family: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  background: #faf3df;
+  color: #0a0a08;
+}
+
+/* ---- Masthead ----------------------------------------------------------- */
+[data-theme="vintage"] .masthead {
+  border-top: 6px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 5mm 0 4mm;
+  margin-bottom: 0;
+  text-align: center;
+  position: relative;
+}
+
+/* Thin line just inside the thick top border, Art Deco thick-thin-thin rule */
+[data-theme="vintage"] .masthead::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ink);
+}
+
+[data-theme="vintage"] .masthead::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 11px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ink);
+}
+
+[data-theme="vintage"] .masthead__title,
+[data-theme="vintage"] .masthead__logo {
+  font-family: "Playfair Display SC", Georgia, serif;
+  font-size: 68pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: #0a0a08;
+}
+
+[data-theme="vintage"] .masthead__logo svg {
+  max-height: 85px;
+}
+
+[data-theme="vintage"] .masthead__meta {
+  justify-content: center;
+  font-family: "Libre Baskerville", serif;
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #0a0a08;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 1mm 0;
+  margin-top: 2mm;
+}
+
+/* ---- Section title ------------------------------------------------------ */
+[data-theme="vintage"] .section__title {
+  font-family: "Playfair Display SC", serif;
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 1mm 0;
+  margin: 0 0 3mm;
+  text-align: center;
+}
+
+/* ---- Column rules ------------------------------------------------------- */
+[data-theme="vintage"] .section__grid {
+  column-rule: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+[data-theme="vintage"] .lead .story__body {
+  column-rule: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+/* ---- Story headline ----------------------------------------------------- */
+[data-theme="vintage"] .story__headline {
+  font-family: "Playfair Display SC", Georgia, serif;
+  font-weight: 700;
+  font-size: 14pt;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 1mm;
+}
+
+[data-theme="vintage"] .lead .story__headline {
+  font-size: 32pt;
+  letter-spacing: -1px;
+  line-height: 1.02;
+}
+
+/* Brief stories: smaller Playfair Display SC */
+[data-theme="vintage"] .story--brief .story__headline {
+  font-size: 11pt;
+  font-family: "Playfair Display SC", serif;
+}
+
+/* ---- Deck --------------------------------------------------------------- */
+[data-theme="vintage"] .story__deck {
+  font-family: "Libre Baskerville", serif;
+  font-style: italic;
+  font-size: 9.5pt;
+  color: color-mix(in srgb, #0a0a08 80%, transparent);
+}
+
+/* ---- Drop cap ----------------------------------------------------------- */
+[data-theme="vintage"] .story__body p:first-of-type::first-letter {
+  font-family: "Playfair Display SC", serif;
+  font-size: 3.8em;
+  line-height: 0.78;
+  float: left;
+  padding-right: 3px;
+  color: #0a0a08;
+}
+
+/* ---- Pull quote --------------------------------------------------------- */
+[data-theme="vintage"] .story__pull {
+  font-family: "Playfair Display SC", serif;
+  font-size: 13pt;
+  font-style: italic;
+  letter-spacing: 0.2px;
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 2mm 0;
+  margin: 2mm 0;
+  text-align: center;
+}
+
+/* ---- Body text ---------------------------------------------------------- */
+[data-theme="vintage"] .story__body p {
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-size: 10pt;
+  line-height: 1.30;
+  color: #0a0a08;
+  text-align: justify;
+  margin: 0 0 1.5mm;
+}
+
+/* ---- Byline ------------------------------------------------------------- */
+[data-theme="vintage"] .story__byline {
+  font-family: "Playfair Display SC", serif;
+  font-size: 7pt;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #0a0a08;
+}

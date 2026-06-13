@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 110" role="img" aria-label="The Morning Paper">
+  <!-- Art Nouveau ornamental frame: flowing organic curves at sides -->
+
+  <!-- Left organic vine / tendril -->
+  <g fill="none" stroke="#1a2c1a" stroke-width="1.2" opacity="0.65">
+    <path d="M30,10 C20,25 15,40 22,55 C28,68 18,80 25,100"/>
+    <path d="M30,10 C38,20 35,30 28,38 C22,46 26,54 22,55"/>
+    <!-- Left leaf flourishes -->
+    <path d="M22,55 C14,50 10,42 18,38" stroke-width="0.8"/>
+    <path d="M25,78 C15,73 12,65 20,60" stroke-width="0.8"/>
+  </g>
+
+  <!-- Right organic vine / tendril (mirrored) -->
+  <g fill="none" stroke="#1a2c1a" stroke-width="1.2" opacity="0.65">
+    <path d="M670,10 C680,25 685,40 678,55 C672,68 682,80 675,100"/>
+    <path d="M670,10 C662,20 665,30 672,38 C678,46 674,54 678,55"/>
+    <!-- Right leaf flourishes -->
+    <path d="M678,55 C686,50 690,42 682,38" stroke-width="0.8"/>
+    <path d="M675,78 C685,73 688,65 680,60" stroke-width="0.8"/>
+  </g>
+
+  <!-- Top decorative rule: two lines with organic gap -->
+  <rect x="45" y="8" width="610" height="1" fill="#1a2c1a" opacity="0.5"/>
+  <rect x="45" y="12" width="610" height="0.5" fill="#1a2c1a" opacity="0.3"/>
+
+  <!-- Central ornamental flourish above title -->
+  <g transform="translate(350,28)" fill="#8b5e3c" opacity="0.75">
+    <!-- Stylized floral ornament: central petal cluster -->
+    <path d="M0,-8 C-4,-5 -5,0 -3,4 C-1,7 1,7 3,4 C5,0 4,-5 0,-8 Z"/>
+    <path d="M0,-8 C4,-5 5,0 3,4 C1,7 -1,7 -3,4 C-5,0 -4,-5 0,-8 Z" opacity="0.6"/>
+    <!-- Horizontal stems -->
+    <line x1="-45" y1="0" x2="-10" y2="0" stroke="#1a2c1a" stroke-width="0.8" opacity="0.5"/>
+    <line x1="10" y1="0" x2="45" y2="0" stroke="#1a2c1a" stroke-width="0.8" opacity="0.5"/>
+    <!-- Tiny leaf tips on stems -->
+    <ellipse cx="-42" cy="0" rx="4" ry="2" fill="#1a2c1a" opacity="0.4" transform="rotate(-15 -42 0)"/>
+    <ellipse cx="42" cy="0" rx="4" ry="2" fill="#1a2c1a" opacity="0.4" transform="rotate(15 42 0)"/>
+  </g>
+
+  <!-- Main title: The Morning Paper in Cinzel Decorative -->
+  <text x="350" y="80"
+        text-anchor="middle"
+        font-family="'Cinzel Decorative', 'Cinzel', Garamond, serif"
+        font-size="42"
+        font-weight="700"
+        fill="#1a2c1a"
+        letter-spacing="3">The Morning Paper</text>
+
+  <!-- Bottom decorative rule pair -->
+  <rect x="45" y="96" width="610" height="0.5" fill="#1a2c1a" opacity="0.3"/>
+  <rect x="45" y="100" width="610" height="1" fill="#1a2c1a" opacity="0.5"/>
+
+  <!-- Bottom center accent ornament -->
+  <g transform="translate(350,98)" fill="#8b5e3c" opacity="0.6">
+    <polygon points="0,-4 3,0 0,4 -3,0"/>
+  </g>
+</svg>
