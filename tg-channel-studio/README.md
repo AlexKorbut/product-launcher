@@ -92,6 +92,7 @@ cd ../marketing && npm install && npm run dev        # лендинг :3001
 
 ## Документы
 - [DEPLOY.md](DEPLOY.md) — пошаговый деплой в прод (VPS + Caddy/TLS, Stripe, userbot, SEO, безопасность).
+- [DEMO.md](DEMO.md) — сценарии демо-видео (хайп-ролик + полное 2-мин демо) с раскадровкой и репликами.
 - [ROADMAP.md](ROADMAP.md) — список фич и статусы.
 - [MARKETING.md](MARKETING.md) — стратегия продвижения, SEO-кластеры, воронка, метрики.
 
