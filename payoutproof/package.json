@@ -1,0 +1,38 @@
+{
+  "name": "payoutproof",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PayoutProof — TikTok Shop payout audit: find the money TikTok Shop owes you",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "worker": "tsx src/worker/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed-fees.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.0",
+    "next": "^15.3.0",
+    "pg": "^8.16.0",
+    "pg-boss": "^10.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "stripe": "^18.2.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/pg": "^8.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}
