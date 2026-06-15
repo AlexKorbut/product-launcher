@@ -1,73 +1,71 @@
-"""Issue generation jobs.
+"""Issue job submission + status for the API.
 
-In-memory job tracking + the worker body that runs the pipeline and stores the
-PDF. Everything is best-effort and guarded so a missing DB never breaks the API.
-
-FUTURE: this body becomes a Celery task; swap BackgroundTasks.add_task for
-.delay(). The JOBS dict becomes a result backend (Redis/DB) so status survives
-process restarts and is shared across workers.
+`submit_issue` enqueues a build on Celery when a broker is configured, otherwise
+runs it in-process via FastAPI BackgroundTasks. Either way the work is the shared
+`morning_paper.jobs.execute_issue` body, and durable status lives in the DB
+`issues` row — so `issue_status` is correct across processes (a Celery worker's
+result is visible to the web process).
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-# job_id -> {status, issue_id, pdf_key, error}
+# Fallback in-process status, used only when there is no DB layer to persist to.
+# issue_id -> {status, issue_id, theme_id, pdf_key, error}
 JOBS: dict[str, dict[str, Any]] = {}
 
 
-def run_issue_job(job_id: str, user_id: str, params: dict) -> None:
-    """Run the full pipeline for a user and persist the resulting PDF."""
-    from ..pipeline.run import run_issue
-    from ..store import get_object_store
+def _run_in_process(issue_id: str, user_id: str, params: dict) -> None:
+    from ..jobs import execute_issue
 
-    JOBS[job_id] = {"status": "running", "issue_id": None, "pdf_key": None, "error": None}
+    JOBS[issue_id] = {"status": "running", "issue_id": issue_id, "theme_id": None, "pdf_key": None, "error": None}
+    JOBS[issue_id] = execute_issue(user_id, params, issue_id=issue_id)
+
+
+def submit_issue(user_id: str, params: dict, *, background=None) -> dict:
+    """Enqueue an issue build. Returns {issue_id, status, mode}."""
+    from ..pipeline.run import new_issue_id
+
+    issue_id = new_issue_id()
+
+    # Durable "queued" marker so status is visible before the worker starts.
     try:
-        ctx = run_issue(user_id, **params)
-        pdf_key: str | None = None
-        if ctx.pdf_path:
-            store = get_object_store()
-            pdf_key = f"issues/{ctx.issue_id}/issue.pdf"
-            store.put_file(pdf_key, str(ctx.pdf_path), content_type="application/pdf")
-            try:
-                from ..db.repository import record_issue
+        from ..db.repository import record_issue
 
-                record_issue(
-                    ctx.issue_id, user_id, ctx.theme_id, status="rendered", pdf_key=pdf_key
-                )
-            except Exception:
-                pass
-        JOBS[job_id] = {
-            "status": "done" if pdf_key else "incomplete",
-            "issue_id": ctx.issue_id,
-            "theme_id": ctx.theme_id,
-            "pdf_key": pdf_key,
-            "error": None,
-        }
-    except Exception as exc:  # noqa: BLE001 — surface any pipeline failure as job error
-        JOBS[job_id] = {
-            "status": "error",
-            "issue_id": None,
-            "pdf_key": None,
-            "error": str(exc),
-        }
+        record_issue(issue_id, user_id, params.get("theme_id") or "pending", status="queued")
+    except Exception:
+        pass
 
-
-def issue_status(issue_id_or_job: str) -> dict:
-    """Best-effort status for an issue or job id.
-
-    Prefers the durable DB issue row when a `get_issue` repository call exists;
-    otherwise falls back to the in-memory JOBS, keyed by either job id or the
-    issue id stored on completion.
-    """
-    # Durable source of truth, if the repository exposes it.
+    # Prefer Celery when a broker is configured.
     try:
-        from ..db.repository import get_issue  # type: ignore[attr-defined]
+        from ..tasks import celery_enabled, run_issue_task
 
-        row = get_issue(issue_id_or_job)
+        if celery_enabled():
+            run_issue_task.delay(user_id, params, issue_id=issue_id)
+            return {"issue_id": issue_id, "status": "queued", "mode": "celery"}
+    except Exception:
+        pass
+
+    # Fallback: in-process background task (or synchronous if no scheduler given).
+    JOBS[issue_id] = {"status": "queued", "issue_id": issue_id, "theme_id": None, "pdf_key": None, "error": None}
+    if background is not None:
+        background.add_task(_run_in_process, issue_id, user_id, params)
+    else:
+        _run_in_process(issue_id, user_id, params)
+    return {"issue_id": issue_id, "status": "queued", "mode": "background"}
+
+
+def issue_status(issue_id: str) -> dict:
+    """Best-effort status. Durable DB row is the source of truth across processes;
+    falls back to the in-memory JOBS map when no DB is available."""
+    try:
+        from ..db.repository import get_issue
+
+        row = get_issue(issue_id)
         if row:
             return {
-                "issue_id": row.get("id") or issue_id_or_job,
+                "issue_id": row.get("id") or issue_id,
                 "status": row.get("status", "unknown"),
                 "theme_id": row.get("theme_id"),
                 "pdf_key": row.get("pdf_key"),
@@ -75,18 +73,12 @@ def issue_status(issue_id_or_job: str) -> dict:
     except Exception:
         pass
 
-    # In-memory fallback: direct job id, or a finished job carrying this issue_id.
-    job = JOBS.get(issue_id_or_job)
-    if job is None:
-        for j in JOBS.values():
-            if j.get("issue_id") == issue_id_or_job:
-                job = j
-                break
+    job = JOBS.get(issue_id)
     if job is not None:
         return {
-            "issue_id": job.get("issue_id") or issue_id_or_job,
+            "issue_id": job.get("issue_id") or issue_id,
             "status": job.get("status", "unknown"),
             "theme_id": job.get("theme_id"),
             "pdf_key": job.get("pdf_key"),
         }
-    return {"issue_id": issue_id_or_job, "status": "unknown", "theme_id": None, "pdf_key": None}
+    return {"issue_id": issue_id, "status": "unknown", "theme_id": None, "pdf_key": None}

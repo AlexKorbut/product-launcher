@@ -1,4 +1,4 @@
-.PHONY: install install-node up down test render-proto run-issue list-themes serve
+.PHONY: install install-node up down test render-proto run-issue list-themes serve worker
 
 install:
 	pip install -e ".[dev]"
@@ -29,3 +29,8 @@ run-issue:
 # FastAPI backend (needs the `api` extra: pip install -e ".[api]").
 serve:
 	python -m morning_paper.cli serve
+
+# Celery worker (needs the `worker` extra + MP_BROKER_URL; start redis via:
+# docker compose --profile workers up -d redis).
+worker:
+	python -m morning_paper.cli worker

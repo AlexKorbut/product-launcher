@@ -10,6 +10,12 @@ from .stages import s1_ingest, s2_profile, s3_retrieve, s4_rank, s5_editorial, s
 STAGES = [s1_ingest, s2_profile, s3_retrieve, s4_rank, s5_editorial, s6_grid, s7_render, s8_deliver]
 
 
+def new_issue_id() -> str:
+    """Stable, sortable issue id (date + short random). Shared by run_issue and
+    the job queue so a caller can know the id before the run starts."""
+    return datetime.now(timezone.utc).strftime("%Y%m%d") + "-" + uuid.uuid4().hex[:6]
+
+
 def run_issue(
     user_id: str,
     *,
@@ -19,6 +25,7 @@ def run_issue(
     from_stage: int = 1,
     until_stage: int = 8,
     feed_urls: list[str] = (),
+    issue_id: str | None = None,
     **kwargs,
 ) -> IssueContext:
     # Fall back to the user's saved preferences when caller doesn't override.
@@ -28,7 +35,7 @@ def run_issue(
     theme_id = theme_id or acc.theme or "times-classic"
     output_lang = output_lang or acc.output_lang or "ru"
 
-    issue_id = datetime.now(timezone.utc).strftime("%Y%m%d") + "-" + uuid.uuid4().hex[:6]
+    issue_id = issue_id or new_issue_id()
     work_dir = (out_dir or Path(".data")) / issue_id
     work_dir.mkdir(parents=True, exist_ok=True)
 

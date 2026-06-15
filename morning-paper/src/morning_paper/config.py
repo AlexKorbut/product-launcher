@@ -51,6 +51,8 @@ class Secrets(BaseSettings):
     voyage_api_key: str | None = None
     mp_db_url: str | None = None
     mp_object_store_url: str = "file://./.data/objects"
+    mp_broker_url: str | None = None        # Celery broker (e.g. redis://localhost:6379/0)
+    mp_result_backend: str | None = None    # Celery result backend (defaults to broker)
     telegram_api_id: str | None = None   # used by the Telethon connector (TELEGRAM_API_ID)
     telegram_api_hash: str | None = None
     newsapi_key: str | None = None

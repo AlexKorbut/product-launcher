@@ -5,12 +5,10 @@ Never returns raw signal text — only topic/entity weights.
 
 from __future__ import annotations
 
-import uuid
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from ..deps import Principal, get_principal, require_owner
-from ..jobs import JOBS, run_issue_job
+from ..jobs import submit_issue
 from ..schemas import JobOut, ProfileOut
 
 router = APIRouter(tags=["profile"])
@@ -23,12 +21,10 @@ def build_profile(
     principal: Principal = Depends(get_principal),
 ) -> JobOut:
     # Build the profile by running ingest+tag stages only (1..2). The pipeline
-    # persists the profile internally, so we reuse the same job worker.
+    # persists the profile internally, so we reuse the same async job path.
     require_owner(principal, user_id)
-    job_id = uuid.uuid4().hex
-    JOBS[job_id] = {"status": "running", "issue_id": None, "pdf_key": None, "error": None}
-    background.add_task(run_issue_job, job_id, user_id, {"until_stage": 2})
-    return JobOut(job_id=job_id, issue_id=None, status="running")
+    result = submit_issue(user_id, {"until_stage": 2}, background=background)
+    return JobOut(job_id=result["issue_id"], issue_id=result["issue_id"], status=result["status"])
 
 
 @router.get("/users/{user_id}/profile", response_model=ProfileOut)

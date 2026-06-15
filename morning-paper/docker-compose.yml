@@ -11,11 +11,25 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  # Optional — only needed once the pipeline moves to Celery workers.
+  # Celery broker/result backend. Enable with: docker compose --profile workers up -d
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    profiles: ["workers"]
+
+  # Celery worker that executes issue builds off the queue.
+  worker:
+    build: .
+    command: morning-paper worker
+    environment:
+      MP_BROKER_URL: redis://redis:6379/0
+      MP_DB_URL: postgresql+psycopg://morning:morning@postgres:5432/morning_paper
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
     profiles: ["workers"]
 
   # Optional — S3-compatible object store if you don't want the local-dir backend.

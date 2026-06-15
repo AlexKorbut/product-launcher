@@ -481,5 +481,31 @@ def serve(
     uvicorn.run("morning_paper.api.app:app", host=host, port=port, reload=reload)
 
 
+@app.command("worker")
+def worker(
+    concurrency: int = typer.Option(2, help="worker processes"),
+    loglevel: str = typer.Option("info", help="celery log level"),
+) -> None:
+    """Run a Celery worker that executes issue builds (requires the `worker` extra
+    and MP_BROKER_URL, e.g. redis://localhost:6379/0)."""
+    from .config import get_settings
+
+    if not get_settings().secrets.mp_broker_url:
+        typer.secho("set MP_BROKER_URL (e.g. redis://localhost:6379/0) in .env first",
+                    fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    try:
+        from .tasks import celery_app
+    except ImportError:
+        celery_app = None
+    if celery_app is None:
+        typer.secho('worker deps not installed. Run: pip install -e ".[worker]"',
+                    fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    celery_app.worker_main(
+        argv=["worker", f"--concurrency={concurrency}", f"--loglevel={loglevel}"]
+    )
+
+
 if __name__ == "__main__":
     app()

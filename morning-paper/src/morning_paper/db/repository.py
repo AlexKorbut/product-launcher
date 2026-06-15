@@ -256,6 +256,26 @@ def record_issue(
         s.commit()
 
 
+def get_issue(issue_id: str, *, url=None, engine=None) -> dict | None:
+    """Durable issue status row, or None. Used by the API to report job progress
+    across processes (so a Celery worker's result is visible to the web process)."""
+    from .engine import get_session
+    from .schema import IssueRow
+
+    with get_session(engine=_engine(url, engine)) as s:
+        row = s.get(IssueRow, issue_id)
+        if row is None:
+            return None
+        return {
+            "id": row.id,
+            "user_id": row.user_id,
+            "theme_id": row.theme_id,
+            "status": row.status,
+            "pdf_key": row.pdf_key,
+            "created_at": row.created_at,
+        }
+
+
 def record_usage(
     *,
     user_id: str,

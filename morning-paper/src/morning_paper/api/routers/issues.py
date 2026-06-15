@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import uuid
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from fastapi.responses import FileResponse
 
 from ..deps import Principal, get_principal, get_store, require_owner
-from ..jobs import JOBS, issue_status, run_issue_job
+from ..jobs import issue_status, submit_issue
 from ..schemas import CostOut, IssueCreate, IssueStatusOut, JobOut
 
 router = APIRouter(tags=["issues"])
@@ -30,10 +28,8 @@ def create_issue(
     if body.feed_urls:
         params["feed_urls"] = list(body.feed_urls)
 
-    job_id = uuid.uuid4().hex
-    JOBS[job_id] = {"status": "running", "issue_id": None, "pdf_key": None, "error": None}
-    background.add_task(run_issue_job, job_id, user_id, params)
-    return JobOut(job_id=job_id, issue_id=None, status="running")
+    result = submit_issue(user_id, params, background=background)
+    return JobOut(job_id=result["issue_id"], issue_id=result["issue_id"], status=result["status"])
 
 
 def _cost(issue_id: str) -> CostOut:
