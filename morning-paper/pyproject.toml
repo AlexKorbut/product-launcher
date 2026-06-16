@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "morning-paper"
+version = "0.1.0"
+description = "Personalized printable newspaper generator"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "anthropic>=0.40",
+    "feedparser>=6.0",
+    "httpx>=0.27",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+db = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1", "pgvector>=0.2", "alembic>=1.13"]
+telegram = ["telethon>=1.36"]
+bot = ["aiogram>=3.7"]
+s3 = ["boto3>=1.34"]
+schedule = ["apscheduler>=3.10"]
+api = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
+worker = ["celery>=5.3", "redis>=5.0"]
+all = [
+    "sqlalchemy>=2.0", "psycopg[binary]>=3.1", "pgvector>=0.2", "alembic>=1.13",
+    "telethon>=1.36", "aiogram>=3.7", "boto3>=1.34", "apscheduler>=3.10",
+    "fastapi>=0.110", "uvicorn[standard]>=0.29", "celery>=5.3", "redis>=5.0",
+]
+dev = ["pytest>=8.0", "tomli>=2.0; python_version < '3.11'"]
+
+[project.scripts]
+morning-paper = "morning_paper.cli:app"
+
+# Third-party interest-source plugins register under this entry-point group.
+[project.entry-points."morning_paper.sources"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

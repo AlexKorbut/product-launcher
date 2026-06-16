@@ -1,0 +1,52 @@
+schema_version = 1
+id            = "art-nouveau"
+display_name  = "Art Nouveau — Belle Époque"
+mood          = "belle époque, Parisian elegance, organic curves, cream and forest green"
+
+[format]
+page        = "a4"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "duotone"
+duotone     = ["#f5edd0", "#1a2c1a"]
+
+[grid]
+columns       = 3
+rule_weight   = "0.5px"
+gutter        = "14px"
+section_order = ["monde", "culture", "science", "société"]
+max_lead      = 1
+
+[type]
+masthead_font = "Cinzel Decorative"
+headline_font = "Cinzel"
+body_font     = "IM Fell English"
+scale         = "editorial"
+hyphenate     = true
+
+[colors]
+paper  = "#f5edd0"
+ink    = "#1a2c1a"
+accent = "#8b5e3c"
+
+[photo]
+treatment    = "duotone"
+max_width_px = 1400
+
+[[fonts]]
+family  = "Cinzel Decorative"
+files   = ["fonts/CinzelDecorative-Regular.woff2", "fonts/CinzelDecorative-Bold.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "Cinzel"
+files   = ["fonts/Cinzel-Regular.woff2", "fonts/Cinzel-Bold.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "IM Fell English"
+files   = ["fonts/IMFellEnglish-Regular.woff2", "fonts/IMFellEnglish-Italic.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

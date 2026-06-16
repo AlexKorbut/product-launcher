@@ -1,0 +1,46 @@
+schema_version = 1
+id            = "old-russian"
+display_name  = "Дореволюционная — Старорусский стиль"
+mood          = "дореволюционная русская газета, пергаментная бумага, тёмная сепия, орнаментальные рамки"
+
+[format]
+page        = "tabloid"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "bw"
+
+[grid]
+columns       = 4
+rule_weight   = "1.5px"
+gutter        = "8px"
+section_order = ["мир", "политика", "хозяйство", "просвещение"]
+max_lead      = 1
+
+[type]
+masthead_font = "Cormorant Garamond"
+headline_font = "Cormorant Garamond"
+body_font     = "Vollkorn"
+scale         = "classic"
+hyphenate     = true
+
+[colors]
+paper  = "#ede4c4"
+ink    = "#2a1a0a"
+accent = "#7a3b1e"
+
+[photo]
+treatment    = "bw"
+max_width_px = 1200
+
+[[fonts]]
+family  = "Cormorant Garamond"
+files   = ["fonts/CormorantGaramond-Regular.woff2", "fonts/CormorantGaramond-Bold.woff2", "fonts/CormorantGaramond-Italic.woff2", "fonts/CormorantGaramond-BoldItalic.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "Vollkorn"
+files   = ["fonts/Vollkorn-Regular.woff2", "fonts/Vollkorn-Bold.woff2", "fonts/Vollkorn-Italic.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

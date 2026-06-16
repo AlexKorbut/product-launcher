@@ -1,0 +1,46 @@
+schema_version = 1
+id            = "swiss-grotesk"
+display_name  = "Swiss Grotesk — International Typographic Style"
+mood          = "Bauhaus, Swiss International, strict grid, red signal accent, zero ornament"
+
+[format]
+page        = "a4"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "color"
+
+[grid]
+columns       = 4
+rule_weight   = "1px"
+gutter        = "12px"
+section_order = ["world", "tech", "business", "culture"]
+max_lead      = 1
+
+[type]
+masthead_font = "DM Sans"
+headline_font = "DM Sans"
+body_font     = "DM Serif Text"
+scale         = "editorial"
+hyphenate     = false
+
+[colors]
+paper  = "#ffffff"
+ink    = "#1a1a1a"
+accent = "#e63946"
+
+[photo]
+treatment    = "color"
+max_width_px = 1600
+
+[[fonts]]
+family  = "DM Sans"
+files   = ["fonts/DMSans-Regular.woff2", "fonts/DMSans-Bold.woff2", "fonts/DMSans-Medium.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "DM Serif Text"
+files   = ["fonts/DMSerifText-Regular.woff2", "fonts/DMSerifText-Italic.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

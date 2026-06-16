@@ -1,0 +1,47 @@
+schema_version = 1
+id            = "economist"
+display_name  = "The Economist — Business Weekly"
+mood          = "structured, sober, data-forward"
+
+[format]
+page        = "a4"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "duotone"
+duotone     = ["#1a1a1a", "#f3e6e6"]
+
+[grid]
+columns       = 4
+rule_weight   = "1px"
+gutter        = "12px"
+section_order = ["business", "world", "tech", "culture"]
+max_lead      = 1
+
+[type]
+masthead_font = "Archivo"
+headline_font = "Archivo"
+body_font     = "Source Serif 4"
+scale         = "compact"
+hyphenate     = true
+
+[colors]
+paper  = "#fdfdfb"
+ink    = "#121212"
+accent = "#e3120b"
+
+[photo]
+treatment    = "duotone"
+max_width_px = 1400
+
+[[fonts]]
+family  = "Archivo"
+files   = ["fonts/Archivo-Bold.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "Source Serif 4"
+files   = ["fonts/SourceSerif4-Regular.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

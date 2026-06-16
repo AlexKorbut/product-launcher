@@ -1,0 +1,178 @@
+/* old-russian: pre-1917 Russian newspaper aesthetic.
+   Aged parchment, heavy ornamental borders, dark sepia ink,
+   Cyrillic-capable Cormorant Garamond with antique flourishes. */
+
+:root[data-theme="old-russian"] {
+  --masthead-font: "Cormorant Garamond";
+  --headline-font: "Cormorant Garamond";
+  --body-font: "Vollkorn";
+}
+
+body[data-theme="old-russian"] {
+  font-family: "Vollkorn", Georgia, "Times New Roman", serif;
+  background: #ede4c4;
+  color: #2a1a0a;
+}
+
+/* ---- Page border -------------------------------------------------------- */
+[data-theme="old-russian"] main.paper {
+  border: 2px double var(--ink);
+  padding: 4mm;
+}
+
+/* ---- Masthead ----------------------------------------------------------- */
+[data-theme="old-russian"] .masthead {
+  border-top: 4px double var(--ink);
+  border-bottom: 4px double var(--ink);
+  padding: 8mm 0 6mm;
+  margin-bottom: 5mm;
+  text-align: center;
+}
+
+[data-theme="old-russian"] .masthead__title,
+[data-theme="old-russian"] .masthead__logo {
+  font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif;
+  font-size: 72pt;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 2px;
+  text-align: center;
+  color: #2a1a0a;
+}
+
+[data-theme="old-russian"] .masthead__logo svg {
+  max-height: 90px;
+}
+
+[data-theme="old-russian"] .masthead__meta {
+  justify-content: center;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 9pt;
+  letter-spacing: 1.5px;
+  color: #2a1a0a;
+  margin-top: 3mm;
+  position: relative;
+}
+
+[data-theme="old-russian"] .masthead__meta::before {
+  content: "✦";
+  margin-right: 10px;
+  color: var(--accent);
+}
+
+[data-theme="old-russian"] .masthead__meta::after {
+  content: "✦";
+  margin-left: 10px;
+  color: var(--accent);
+}
+
+/* ---- Section title ------------------------------------------------------ */
+[data-theme="old-russian"] .section__title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 11pt;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 2mm;
+  margin: 0 0 3mm;
+}
+
+[data-theme="old-russian"] .section__title::before {
+  content: "— ";
+  color: var(--accent);
+  font-style: normal;
+}
+
+[data-theme="old-russian"] .section__title::after {
+  content: " —";
+  color: var(--accent);
+  font-style: normal;
+}
+
+/* ---- Column rules ------------------------------------------------------- */
+[data-theme="old-russian"] .section__grid {
+  column-rule: 1.5px solid color-mix(in srgb, #2a1a0a 40%, #7a3b1e 10%);
+}
+
+[data-theme="old-russian"] .lead .story__body {
+  column-rule: 1.5px solid color-mix(in srgb, #2a1a0a 40%, #7a3b1e 10%);
+}
+
+/* ---- Story headline ----------------------------------------------------- */
+[data-theme="old-russian"] .story__headline {
+  font-family: "Cormorant Garamond", Garamond, serif;
+  font-weight: 700;
+  font-size: 16pt;
+  text-align: center;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+  margin-bottom: 1.5mm;
+}
+
+[data-theme="old-russian"] .lead .story__headline {
+  font-size: 34pt;
+  text-align: center;
+  line-height: 1.04;
+}
+
+[data-theme="old-russian"] .story--brief .story__headline {
+  font-size: 12.5pt;
+  text-align: center;
+}
+
+/* ---- Deck (standfirst) -------------------------------------------------- */
+[data-theme="old-russian"] .story__deck {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 10.5pt;
+  text-align: center;
+  color: color-mix(in srgb, #2a1a0a 85%, #7a3b1e 10%);
+}
+
+/* ---- Drop cap ----------------------------------------------------------- */
+[data-theme="old-russian"] .story__body p:first-of-type::first-letter {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 4em;
+  line-height: 0.75;
+  float: left;
+  padding-right: 4px;
+  color: var(--accent);
+}
+
+/* ---- Pull quote --------------------------------------------------------- */
+[data-theme="old-russian"] .story__pull {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 13pt;
+  font-style: italic;
+  border-top: 2px double var(--accent);
+  border-bottom: 2px double var(--accent);
+  border-left: none;
+  border-right: none;
+  padding: 3mm 2mm;
+  margin: 3mm 0;
+  color: #2a1a0a;
+  text-align: center;
+}
+
+/* ---- Body text ---------------------------------------------------------- */
+[data-theme="old-russian"] .story__body p {
+  font-family: "Vollkorn", Georgia, serif;
+  font-size: 10.5pt;
+  line-height: 1.38;
+  color: #2a1a0a;
+  text-align: justify;
+  margin: 0 0 2mm;
+}
+
+/* ---- Byline ------------------------------------------------------------- */
+[data-theme="old-russian"] .story__byline {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  font-size: 8.5pt;
+  color: color-mix(in srgb, #2a1a0a 70%, #7a3b1e 15%);
+}

@@ -1,0 +1,46 @@
+schema_version = 1
+id            = "times-classic"
+display_name  = "The Times — Classic Broadsheet"
+mood          = "classic broadsheet, dense, authoritative"
+
+[format]
+page        = "broadsheet"
+orientation = "portrait"
+bleed_mm    = 0
+color_mode  = "bw"
+
+[grid]
+columns       = 6
+rule_weight   = "1px"
+gutter        = "10px"
+section_order = ["world", "business", "tech", "culture"]
+max_lead      = 1
+
+[type]
+masthead_font = "UnifrakturCook"
+headline_font = "EB Garamond"
+body_font     = "EB Garamond"
+scale         = "classic"
+hyphenate     = true
+
+[colors]
+paper  = "#f7f4ec"
+ink    = "#111111"
+accent = "#111111"
+
+[photo]
+treatment    = "bw"
+max_width_px = 1600
+
+[[fonts]]
+family  = "UnifrakturCook"
+files   = ["fonts/UnifrakturCook-Regular.woff2"]
+license = "OFL-1.1"
+
+[[fonts]]
+family  = "EB Garamond"
+files   = ["fonts/EBGaramond-Regular.woff2", "fonts/EBGaramond-Bold.woff2"]
+license = "OFL-1.1"
+
+[assets]
+masthead = "masthead.svg"

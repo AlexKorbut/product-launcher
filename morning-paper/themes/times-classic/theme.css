@@ -1,0 +1,29 @@
+/* times-classic: dense, justified, blackletter masthead, hairline rules.
+   Variables are set by the renderer from theme.toml; this file adds only
+   theme-specific flourishes on top of _base/base.css. */
+
+:root[data-theme="times-classic"] {
+  --masthead-font: "UnifrakturCook";
+  --headline-font: "EB Garamond";
+  --body-font: "EB Garamond";
+}
+
+body[data-theme="times-classic"] {
+  font-family: "EB Garamond", Garamond, "Times New Roman", serif;
+}
+
+[data-theme="times-classic"] .masthead {
+  border-bottom: 4px double var(--ink);
+}
+[data-theme="times-classic"] .masthead__title,
+[data-theme="times-classic"] .masthead__logo {
+  font-family: "UnifrakturCook", "EB Garamond", serif;
+  font-size: 60pt;
+}
+[data-theme="times-classic"] .section__grid {
+  column-rule: 0.5px solid color-mix(in srgb, var(--ink) 45%, transparent);
+}
+[data-theme="times-classic"] .story__headline {
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}

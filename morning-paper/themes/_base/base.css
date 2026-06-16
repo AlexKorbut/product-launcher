@@ -1,0 +1,144 @@
+/* Structural base layer. Consumes var(--*) set per theme; contains NO literal
+   colors or font names of its own. Themes override the variables and may add a
+   few theme-specific selectors on top. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body-font), Georgia, "Times New Roman", serif;
+  font-size: 10.5pt;
+  line-height: 1.32;
+  hyphens: auto;
+}
+
+/* ---- Masthead ---------------------------------------------------------- */
+.masthead {
+  text-align: center;
+  padding: 6mm 0 3mm;
+  border-bottom: 3px double var(--ink);
+  margin-bottom: 4mm;
+}
+.masthead__title,
+.masthead__logo {
+  font-family: var(--masthead-font), var(--headline-font), serif;
+  font-size: 48pt;
+  line-height: 1;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+.masthead__logo svg { max-height: 56px; }
+.masthead__meta {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 2mm;
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- Lead -------------------------------------------------------------- */
+.lead {
+  border-bottom: var(--rule-weight) solid var(--ink);
+  padding-bottom: 4mm;
+  margin-bottom: 4mm;
+}
+.lead .story__headline { font-size: 30pt; line-height: 1.04; }
+.lead .story__body {
+  column-count: 3;
+  column-gap: var(--gutter);
+  column-rule: var(--rule-weight) solid color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+/* ---- Sections ---------------------------------------------------------- */
+.section { margin-bottom: 5mm; }
+.section__title {
+  font-family: var(--headline-font), serif;
+  font-size: 11pt;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: var(--rule-weight) solid var(--ink);
+  padding-bottom: 1mm;
+  margin: 0 0 3mm;
+}
+.section__grid {
+  column-count: var(--columns);
+  column-gap: var(--gutter);
+  column-rule: var(--rule-weight) solid color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+/* ---- Story ------------------------------------------------------------- */
+.story {
+  break-inside: avoid-column;
+  margin: 0 0 4mm;
+}
+/* Lead spans the whole width; flowed stories fill the section's multicol.
+   Honoring an exact per-story column span (GridSlot.columns) needs a CSS-grid
+   layer instead of multicol — a planned layout refinement, see docs/04. */
+.story--lead { column-span: all; }
+.story__headline {
+  font-family: var(--headline-font), serif;
+  font-weight: 700;
+  font-size: 15pt;
+  line-height: 1.08;
+  margin: 0 0 1mm;
+}
+.story--brief .story__headline { font-size: 12pt; }
+.story__deck {
+  font-style: italic;
+  font-size: 10pt;
+  margin: 0 0 2mm;
+  color: color-mix(in srgb, var(--ink) 80%, transparent);
+}
+.story__byline {
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 2mm;
+}
+.story__body p { margin: 0 0 2mm; text-align: justify; }
+.story__body p:first-of-type::first-letter {
+  /* Drop cap on the opening paragraph — only meaningful on larger stories. */
+  font-family: var(--headline-font), serif;
+  float: left;
+  font-size: 3.2em;
+  line-height: 0.8;
+  padding-right: 3px;
+}
+.story--brief .story__body p:first-of-type::first-letter { font-size: 1em; float: none; }
+
+.story__photo { margin: 0 0 2mm; break-inside: avoid; }
+.story__photo img { width: 100%; height: auto; display: block; }
+.story__photo figcaption {
+  font-size: 7pt;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 1mm;
+}
+.story__pull {
+  font-family: var(--headline-font), serif;
+  font-size: 14pt;
+  line-height: 1.2;
+  font-style: italic;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: 2mm 0;
+  margin: 2mm 0;
+}
+
+/* Widow/orphan control for print. */
+p { orphans: 2; widows: 2; }
+
+/* Running footer with page numbers via Paged.js. */
+@page {
+  margin: 14mm 12mm 16mm;
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--body-font), serif;
+    font-size: 8pt;
+  }
+}

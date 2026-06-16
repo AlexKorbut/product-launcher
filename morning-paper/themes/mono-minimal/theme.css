@@ -1,0 +1,42 @@
+/* mono-minimal: no photos, stark rules, monospaced masthead, typographic hierarchy. */
+
+:root[data-theme="mono-minimal"] {
+  --masthead-font: "Space Mono";
+  --headline-font: "Space Grotesk";
+  --body-font: "IBM Plex Sans";
+}
+
+body[data-theme="mono-minimal"] {
+  font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.4;
+}
+
+[data-theme="mono-minimal"] .masthead {
+  border-bottom: 2px solid var(--ink);
+  text-align: left;
+  padding-left: 0;
+}
+[data-theme="mono-minimal"] .masthead__title,
+[data-theme="mono-minimal"] .masthead__logo {
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  font-size: 30pt;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+[data-theme="mono-minimal"] .masthead__meta { justify-content: flex-start; }
+
+[data-theme="mono-minimal"] .story__headline {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+}
+/* No photos in this theme; hide any that slip through. */
+[data-theme="mono-minimal"] .story__photo { display: none; }
+/* No drop caps — keep it austere. */
+[data-theme="mono-minimal"] .story__body p:first-of-type::first-letter {
+  font-size: 1em;
+  float: none;
+  padding: 0;
+}
+[data-theme="mono-minimal"] .story__body p { text-align: left; }

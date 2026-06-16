@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Node renderer
+renderer/node_modules/
+
+# Local data + generated artifacts
+.data/
+*.pdf
+render_document.json
+
+# Secrets
+.env
