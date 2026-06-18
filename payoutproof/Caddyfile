@@ -1,0 +1,5 @@
+# Replace payoutproof.com with your domain. Caddy obtains TLS automatically.
+{$DOMAIN:payoutproof.com} {
+	encode gzip
+	reverse_proxy web:3000
+}
