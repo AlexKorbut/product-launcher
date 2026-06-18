@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { makeTikTokClient } from "../../../../lib/tiktok/factory";
 import { encryptToken } from "../../../../lib/crypto";
 import { getDb } from "../../../../db";
-import { shops } from "../../../../db/schema";
+import { sellerAccounts, shops } from "../../../../db/schema";
 import { env } from "../../../../lib/env";
 
 export const runtime = "nodejs";
@@ -24,9 +25,17 @@ export async function GET(req: NextRequest) {
   const client = makeTikTokClient();
 
   try {
+    const db = getDb();
+    const [account] = await db
+      .select({ id: sellerAccounts.id })
+      .from(sellerAccounts)
+      .where(eq(sellerAccounts.id, sellerAccountId));
+    if (!account) {
+      return NextResponse.redirect(new URL("/login?error=expired", env.appUrl));
+    }
+
     const token = await client.exchangeCode(code);
     const authorized = await client.getAuthorizedShops(token.access_token);
-    const db = getDb();
 
     for (const shop of authorized) {
       await db

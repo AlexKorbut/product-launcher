@@ -46,8 +46,18 @@ export const env = {
   get encryptionKey() {
     return required("ENCRYPTION_KEY");
   },
+  // Session signing secret (any high-entropy string)
+  get sessionSecret() {
+    return optional("SESSION_SECRET") || required("ENCRYPTION_KEY");
+  },
   get resendApiKey() {
     return optional("RESEND_API_KEY");
+  },
+  get emailFrom() {
+    return optional("EMAIL_FROM", "PayoutProof <hello@payoutproof.com>");
+  },
+  get isProduction() {
+    return process.env.NODE_ENV === "production";
   },
 } as const;
 

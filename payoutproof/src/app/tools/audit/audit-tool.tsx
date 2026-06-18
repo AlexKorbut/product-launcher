@@ -100,6 +100,34 @@ export function AuditTool() {
 }
 
 function ReportView({ report, unknownHeaders }: { report: AuditReport; unknownHeaders: string[] }) {
+  const [email, setEmail] = useState("");
+  const [captured, setCaptured] = useState(false);
+
+  async function submitLead(e: React.FormEvent) {
+    e.preventDefault();
+    await fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, rows: report.transactionsChecked, owedCents: report.totalOwedCents }),
+    }).catch(() => {});
+    setCaptured(true);
+  }
+
+  function downloadCsv() {
+    const header = ["check", "order_id", "fee_type", "amount_owed", "severity", "detail"];
+    const lines = report.topFindings.map((f) =>
+      [f.checkId, f.orderId ?? "", "", (f.deltaCents / 100).toFixed(2), f.severity, csvCell(f.message)].join(","),
+    );
+    const csv = [header.join(","), ...lines].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "payoutproof-findings.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="mt">
       <div className="panel">
@@ -152,6 +180,39 @@ function ReportView({ report, unknownHeaders }: { report: AuditReport; unknownHe
         </div>
       )}
 
+      {report.topFindings.length > 0 && (
+        <div className="panel mt center">
+          {captured ? (
+            <>
+              <h3>Your findings are ready</h3>
+              <p className="muted">Download the top findings, or automate this on every payout.</p>
+              <button className="btn" onClick={downloadCsv}>Download findings CSV</button>{" "}
+              <a href="/pricing" className="btn secondary">Automate it</a>
+            </>
+          ) : (
+            <>
+              <h3>Get your findings + full evidence pack</h3>
+              <p className="muted">
+                Enter your email to download the findings and get a free guide on recovering
+                them from TikTok seller support.
+              </p>
+              <form onSubmit={submitLead} style={{ maxWidth: 380, margin: "0 auto" }}>
+                <input
+                  type="email"
+                  required
+                  placeholder="you@store.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <button className="btn mt" type="submit" style={{ width: "100%" }}>
+                  Show my findings
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="panel mt center">
         <h3>Want this run automatically on every payout?</h3>
         <p className="muted">
@@ -169,4 +230,8 @@ function ReportView({ report, unknownHeaders }: { report: AuditReport; unknownHe
       )}
     </div>
   );
+}
+
+function csvCell(value: string): string {
+  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }

@@ -16,7 +16,26 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <nav style={{ borderBottom: "1px solid var(--border)" }}>
+          <div
+            className="container"
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px" }}
+          >
+            <a href="/" style={{ fontWeight: 800, color: "var(--text)" }}>
+              Payout<span className="accent">Proof</span>
+            </a>
+            <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+              <a href="/tools/audit">Free audit</a>
+              <a href="/pricing">Pricing</a>
+              <a href="/app" className="btn secondary" style={{ padding: "8px 14px" }}>
+                Sign in
+              </a>
+            </div>
+          </div>
+        </nav>
+        {children}
+      </body>
     </html>
   );
 }

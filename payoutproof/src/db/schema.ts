@@ -193,6 +193,23 @@ export const discrepancies = pgTable(
   }),
 );
 
+export const authTokens = pgTable(
+  "auth_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    // sha256 hash of the raw token — never store the token itself
+    tokenHash: text("token_hash").notNull().unique(),
+    purpose: text("purpose").notNull().default("login"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    byEmail: index("auth_tokens_email_idx").on(t.email),
+  }),
+);
+
 export const subscriptions = pgTable("subscriptions", {
   id: uuid("id").primaryKey().defaultRandom(),
   sellerAccountId: uuid("seller_account_id")
